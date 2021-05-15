@@ -5,7 +5,7 @@ output:
     df_print: paged
   word_document: default
   html_notebook: default
-bibliography: ["tidytuesday.bib","2021-18.bib"]
+bibliography: ["../tidytuesday.bib","2021-18.bib"]
 nocite: '@*'
 ---
 
