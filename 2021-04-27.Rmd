@@ -1,0 +1,158 @@
+---
+title: "Tidy Tuesday 2021-18 CEO Departures"
+output:
+  html_document:
+    df_print: paged
+  word_document: default
+  html_notebook: default
+bibliography: ["tidytuesday.bib","2021-18.bib"]
+nocite: '@*'
+---
+
+## Introduction
+
+The data this week comes from @data by way of DataIsPlural.
+
+We introduce an open‐source dataset documenting the reasons for CEO departure in S&P 1500 firms from 2000 through 2018. In our dataset, we code for various forms of voluntary and involuntary departure. We compare our dataset to three published datasets in the CEO succession literature to assess both the qualitative and quantitative differences among them and to explore how these differences impact empirical findings associated with the performance‐CEO dismissal relationship. The dataset includes eight different classifications for CEO turnover, a narrative description of each departure event, and links to sources used in constructing the narrative so that future researchers can validate or adapt the coding. The resulting data are available at (https://doi.org/10.5281/zenodo.4543893).
+
+This revision includes potentially relevant 8k filings from 270 days before and after the CEO's departure date. These filings were not all useful for understanding the departure, but might be useful in general.
+
+Note a US fiscal year is 1 October to 30 September.
+
+## Setup
+```{r setup, message = FALSE}
+library(tidytuesdayR)
+library(tidyverse)
+```
+
+## Import Data
+```{r get_the_data, cache = TRUE, message = FALSE}
+tuesdata <- tidytuesdayR::tt_load('2021-04-27')
+departures <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-04-27/departures.csv')
+```
+
+## Tidy Data
+
+Only one entry each in 1987 and in 2020; no entries in 1988 - 1991. Considering as outliers, so excluding from dataset before analysis. 
+
+Also removing 1992 and 2019 data as potentially incomplete. Source website indicates dataset covers 1992-2018.
+
+```{r}
+departures_tidy <- departures %>%
+  filter(!fyear %in% c(1987, 1988, 1989, 1990, 1991, 1992, 2019, 2020))
+```
+
+## Exploratory Data Analysis
+
+### Question 1: How has the number of CEO departures per year changed over time?
+```{r}
+departures_per_year <- departures_tidy %>%
+  group_by(fyear) %>%
+  summarise(count = n(), percent = round(count / 1500 * 100, digits = 1)) %>%
+  arrange(desc(fyear))
+departures_per_year
+
+ggplot(departures_per_year, aes(x = fyear, y = count)) +
+    geom_col()
+```
+
+### Question 2: Of the 1500 companies how many changed CEO in each fiscal year (from 2000 to 2018)?
+
+```{r echo = TRUE}
+top_departures_per_year <- departures_per_year %>%
+  top_n(n = 1, wt = count)
+```
+
+So, the highest number of companies to change CEO in a financial year was in `r top_departures_per_year$count` (`r top_departures_per_year$percent`%) in `r top_departures_per_year$fyear`.
+
+**Could there be something to explore about timing vis-a-vis recessions?**
+
+# How often are companies changing CEO ?
+
+```{r departure_frequency}
+departures_by_company <- departures_tidy %>%
+  group_by(coname) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count)) 
+summary(departures_by_company$count)
+
+ggplot(departures_by_company, aes(y = count)) +
+  geom_boxplot()
+```
+
+# Which CEOs have been around the block ..?
+
+```{r departure_names}
+departures_by_ceo <- departures_tidy %>%
+  group_by(exec_fullname) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count)) 
+summary(departures_by_ceo$count)
+
+top_departures_by_ceo <- departures_by_ceo %>%
+  top_n(n = 10, wt = count)
+top_departures_by_ceo
+
+ggplot(departures_by_ceo, aes(x = count)) +
+  geom_histogram(bins = 30)
+```
+# What reasons are companies changing CEO ?
+```{r echo = TRUE}
+departures_tidy %>%
+  group_by(ceo_dismissal) %>%
+  summarise(n = n()) %>%
+  mutate(ceo_dismissal = case_when(
+    ceo_dismissal == 0 ~ "not dismissed",
+    ceo_dismissal == 1 ~ "dismissed",
+                  TRUE ~ "not recorded"), 
+    percent = round(n / sum(n) * 100, 1)
+  )
+
+
+```
+# So, of the 8253 ceo departures
+
+```{r echo = TRUE}
+departures_by_code <- departures_tidy %>%
+  group_by(departure_code) %>%
+  summarise(n = n()) %>%
+  mutate(
+    departure_reason = case_when(
+    departure_code == 1 ~ "died",
+    departure_code == 2 ~ "illness",
+    departure_code == 3 ~ "dismissed - performance",
+    departure_code == 4 ~ "dismissed - legal reasons",
+    departure_code == 5 ~ "retired",
+    departure_code == 6 ~ "new role",
+    departure_code == 7 ~ "other",
+    departure_code == 8 ~ "unknown",
+    departure_code == 9 ~ "errorcheck"
+    ), percent = round(n / sum(n) * 100, 1)
+  ) %>% 
+  group_by(departure_reason) %>%
+  arrange(desc(n))
+
+departures_by_code
+
+ggplot(departures_by_code, aes(x = reorder(departure_reason, -n), y = n)) +
+    geom_col() +
+    coord_flip()
+```
+
+
+These don't look like they line up with the dismissal attribute of these observations. There are 1497 dismissals in the departure reasons list, but only 1471 in the ceo_dismissal list. # Fix these numbers.
+
+```{r}
+departures_tidy %>%
+  filter (departure_code %in% c(3, 4) & ceo_dismissal != 1)
+```
+These entries probably need review. Most of them should probably have their ceo_dismissal value changed to '1' from '0'.
+
+
+## Clean up
+```{r clean_up}
+rm(departures)
+rm(tuesdata)
+rm(departures_per_year)
+```
+# References or Bibliography
