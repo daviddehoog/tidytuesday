@@ -1,2 +1,2 @@
-# edatidytuesday
+# tidytuesday
 My TidyTuesday notebooks
