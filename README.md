@@ -1,2 +1,2 @@
 # tidytuesday
-My TidyTuesday notebooks
+My TidyTuesday notebooks - now also an RStudio project 
