@@ -151,15 +151,24 @@ departures_tidy %>%
   filter (departure_code %in% c(3, 4) & ceo_dismissal != 1)
 ```
 These 26 entries should probably have their ceo_dismissal value changed to '0' from '1'. If this is done, then the total number of dismissals matches with the number of departures with a dismissal reason (1471 + 26 = 1497).
-
+<!-- How to do this? dplyr's rows_update() is impenetrable. -->
 
 ```{r}
-departures_tidy <- departures_tidy %>%
-  filter (departure_code %in% c(3, 4) & ceo_dismissal != 1) %>%
-  mutate(ceo_dismissal = 1)
 
-departures_tidy
+top_departures_by_ceo %>%
+  select(exec_fullname) %>%
+  inner_join(departures_tidy, by = "exec_fullname") %>%
+  select (exec_fullname, coname, fyear, departure_code, notes) %>%
+  arrange(exec_fullname, desc(fyear))
 ```
+### Question 6: What happened in 2017 and 2018?
+```{r}
+departures_tidy %>%
+  filter(fyear %in% c(2017, 2018))
+```
+
+
+
 
 <!-- Could do a search through notes field for misconduct reasons -->
 
