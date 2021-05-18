@@ -12,13 +12,13 @@ nocite: '@*'
 
 ## Introduction
 
-The data this week comes from @data by way of DataIsPlural.
+The #TidyTuesday data this week comes from @data by way of DataIsPlural.
 
-We introduce an open‐source dataset documenting the reasons for CEO departure in S&P 1500 firms from 2000 through 2018. In our dataset, we code for various forms of voluntary and involuntary departure. We compare our dataset to three published datasets in the CEO succession literature to assess both the qualitative and quantitative differences among them and to explore how these differences impact empirical findings associated with the performance‐CEO dismissal relationship. The dataset includes eight different classifications for CEO turnover, a narrative description of each departure event, and links to sources used in constructing the narrative so that future researchers can validate or adapt the coding. The resulting data are available at (https://doi.org/10.5281/zenodo.4543893).
+  *We introduce an open‐source dataset documenting the reasons for CEO departure in S&P 1500 firms from 2000 through 2018. In our dataset, we code for various forms of voluntary and involuntary departure. We compare our dataset to three published datasets in the CEO succession literature to assess both the qualitative and quantitative differences among them and to explore how these differences impact empirical findings associated with the performance‐CEO dismissal relationship. The dataset includes eight different classifications for CEO turnover, a narrative description of each departure event, and links to sources used in constructing the narrative so that future researchers can validate or adapt the coding. The resulting data are available at (https://doi.org/10.5281/zenodo.4543893).*
 
-This revision includes potentially relevant 8k filings from 270 days before and after the CEO's departure date. These filings were not all useful for understanding the departure, but might be useful in general.
+  *This revision includes potentially relevant 8k filings from 270 days before and after the CEO's departure date. These filings were not all useful for understanding the departure, but might be useful in general.*
 
-Note a US fiscal year is 1 October to 30 September.
+I will also note that a United States fiscal year runs from 1 October to 30 September.
 
 ## Setup
 ```{r setup, message = FALSE}
@@ -57,6 +57,8 @@ ggplot(departures_per_year, aes(x = fyear, y = count)) +
     geom_col()
 ```
 
+The number of CEO departures in each financial year did not vary a great deal, until a sharp increase in the number of departures in financial years 2017 and 2018.
+
 ### Question 2: Of the 1500 companies how many changed CEO in each fiscal year (from 2000 to 2018)?
 
 ```{r echo = TRUE}
@@ -66,9 +68,9 @@ top_departures_per_year <- departures_per_year %>%
 
 So, the highest number of companies to change CEO in a financial year was in `r top_departures_per_year$count` (`r top_departures_per_year$percent`%) in `r top_departures_per_year$fyear`.
 
-**Could there be something to explore about timing vis-a-vis recessions?**
+<!-- Could there be something to explore about timing vis-a-vis recessions? -->
 
-# How often are companies changing CEO ?
+### Question 3: How often are companies changing CEO ?
 
 ```{r departure_frequency}
 departures_by_company <- departures_tidy %>%
@@ -81,7 +83,7 @@ ggplot(departures_by_company, aes(y = count)) +
   geom_boxplot()
 ```
 
-# Which CEOs have been around the block ..?
+### Question 4: Which CEOs have departed multiple times and how many times?
 
 ```{r departure_names}
 departures_by_ceo <- departures_tidy %>%
@@ -97,9 +99,11 @@ top_departures_by_ceo
 ggplot(departures_by_ceo, aes(x = count)) +
   geom_histogram(bins = 30)
 ```
-# What reasons are companies changing CEO ?
+
+### Question 5: What reasons are companies giving for changing CEO ?
+
 ```{r echo = TRUE}
-departures_tidy %>%
+departures_by_reason <- departures_tidy %>%
   group_by(ceo_dismissal) %>%
   summarise(n = n()) %>%
   mutate(ceo_dismissal = case_when(
@@ -109,9 +113,9 @@ departures_tidy %>%
     percent = round(n / sum(n) * 100, 1)
   )
 
-
+departures_by_reason
 ```
-# So, of the 8253 ceo departures
+Of the 8253 CEO departures in the period, 1471 were because the CEO was dismissed. How does this compare with the reasons for CEO departure recorded in the data?
 
 ```{r echo = TRUE}
 departures_by_code <- departures_tidy %>%
@@ -140,17 +144,25 @@ ggplot(departures_by_code, aes(x = reorder(departure_reason, -n), y = n)) +
     coord_flip()
 ```
 
-
-These don't look like they line up with the dismissal attribute of these observations. There are 1497 dismissals in the departure reasons list, but only 1471 in the ceo_dismissal list. # Fix these numbers.
+While 1471 departures are identified as being dismissals (above), there are 1302 + 195 = 1497 with a departure reason that indicates the ceo was dismissed.
 
 ```{r}
 departures_tidy %>%
   filter (departure_code %in% c(3, 4) & ceo_dismissal != 1)
 ```
-These entries probably need review. Most of them should probably have their ceo_dismissal value changed to '1' from '0'.
+These 26 entries should probably have their ceo_dismissal value changed to '0' from '1'. If this is done, then the total number of dismissals matches with the number of departures with a dismissal reason (1471 + 26 = 1497).
 
 
-*** Could do a search through notes field for misconduct reasons ***
+```{r}
+departures_tidy <- departures_tidy %>%
+  filter (departure_code %in% c(3, 4) & ceo_dismissal != 1) %>%
+  mutate(ceo_dismissal = 1)
+
+departures_tidy
+```
+
+<!-- Could do a search through notes field for misconduct reasons -->
+
 
 
 ## Clean up
