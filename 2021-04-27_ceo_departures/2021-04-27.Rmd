@@ -3,8 +3,8 @@ title: "Tidy Tuesday 2021-18 CEO Departures"
 output:
   html_document:
     df_print: paged
-  word_document: default
   html_notebook: default
+  github_document: default
 bibliography: ["../tidytuesday.bib","2021-18.bib"]
 nocite: '@*'
 ---
@@ -147,6 +147,9 @@ departures_tidy %>%
   filter (departure_code %in% c(3, 4) & ceo_dismissal != 1)
 ```
 These entries probably need review. Most of them should probably have their ceo_dismissal value changed to '1' from '0'.
+
+
+*** Could do a search through notes field for misconduct reasons ***
 
 
 ## Clean up
