@@ -1,10 +1,11 @@
 ---
 title: "Tidy Tuesday 2021-18 CEO Departures"
 output:
+  github_document: default
+  html_notebook: default
   html_document:
     df_print: paged
-  html_notebook: default
-  github_document: default
+    self_contained: false
 bibliography: ["../tidytuesday.bib","2021-18.bib"]
 nocite: '@*'
 ---
