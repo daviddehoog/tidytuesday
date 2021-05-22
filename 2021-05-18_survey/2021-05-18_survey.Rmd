@@ -38,20 +38,29 @@ This may take some time ...
 Let's start by cleaning the gender entries so it can be converted to a factor.
 ```{r}
 survey %>% 
-  group_by(gender) %>%
-  summarize(n = n())
+  count(gender)
 survey_clean <- survey
 ```
-For most purposes we can consider "prefer not to answer" and "NA" (did not answer) to be the same. The "Other or prefer not to answer" observations are more tricky, because there is no way to distinguish between survey respondents who identify with a gender that is not male, female or non-binary and those that preferred not to answer. For our purposes, it will be sufficient to group all three responses together as "Other or prefer not to answer".
+For most purposes we can consider "prefer not to answer" and "NA" (did not answer) to be the same. Let's combine these.
+
+The "Other or prefer not to answer" observations are more tricky, because there is no way to distinguish between survey respondents who identify with a gender that is not male, female or non-binary and those that preferred not to answer. For our purposes, it would be sufficient to group all three responses together as "Other or prefer not to answer", but we will keep the did not respond entries as NA for now.
 ```{r}
 survey_clean <- survey_clean %>%
-  mutate(gender_clean = str_replace_all(gender, "Prefer not to answer", "Other or prefer not to answer")) # %>%
+  mutate(gender_clean = str_replace_all(gender, "Prefer not to answer", "Other or prefer not to answer")) %>%
 #  select(-gender)
+  mutate(gender_fct1 = as.factor(gender_clean))
 
 survey_clean %>% 
-  group_by(gender_clean) %>%
-  summarize(n = n())
+  count(gender_clean)
 ```
+Doing that cleaning with this as strings was pretty painful. Probably much easier with forcats.
+
+```{r}
+survey_clean <- survey %>%
+  mutate(gender_cats = fct_collapse(gender, "Prefer not to answer" = "Other or prefer not to answer")) %>%
+  mutate(gender_fct2 = as.factor(gender_cats))
+```
+
 
 
 

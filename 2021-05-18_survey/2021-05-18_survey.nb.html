@@ -281,38 +281,59 @@ survey</code></pre>
 <p>Let’s start by cleaning the gender entries so it can be converted to a factor.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VydmV5ICU+JSBcbiAgZ3JvdXBfYnkoZ2VuZGVyKSAlPiVcbiAgc3VtbWFyaXplKG4gPSBuKCkpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VydmV5ICU+JSBcbiAgY291bnQoZ2VuZGVyKVxuYGBgIn0= -->
 <pre class="r"><code>survey %&gt;% 
-  group_by(gender) %&gt;%
-  summarize(n = n())</code></pre>
+  count(gender)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6NiwibmNvbCI6Miwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyI2IHggMiJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUEzVlFRVTdETUJEY09IVlJJZ29JdUNMbEE4a0JMandBY1lPaUNrU3ZidUsyRWVrNmNsd1ZidHo0QUovaVN4eGExcW1Oa0NVc09aNmQzZG1kemVSbWVwVk9Vd0NJWVFBY1lrNFErTlBqYlg0Tk1HQVVSSlJJN1B0S1JXY0VMSGxDZCtnUzhaMUFCOU43aGZtc1JxSGZISE14Tmt1cE02V3pWc3M1SVZRbU15b1QyRzJrZGtYbkQvL24rTE5hVVgrQVpFZUgzbEUvR2s0L3lNa1gyVHJzUGNLWVl2Z01QSE1VSzlrNXY4eVJ3NFhFNnJkL2hJRW0wV3BUZUowZHh0N3BRN08vdytabEl6cmYzSk5wSll3bzVwcjBGRzBEeVlGcVRhMlFSTXorU1I2SUl4MFF4MnUwVHFxOFhLN3hKYiswQS9icjltZms4UEFQWnZ1UmJPZGFjYisxeEVXTjBudHZ4RXcyTGppaWpmdUZpMWJYYVB3bXhIYUZVVWI0dXJSVWpXZjYzV0Q3QS92MFdkcEFBZ0FBIn0= -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInNwZWNfdGJsX2RmIiwidGJsX2RmIiwidGJsIiwiZGF0YS5mcmFtZSJdLCJucm93Ijo2LCJuY29sIjoyLCJzdW1tYXJ5Ijp7IkEgdGliYmxlIjpbIjYgeCAyIl19fSwicmRmIjoiSDRzSUFBQUFBQUFBQTNWUVFVN0RNQkRjT0hWUklnb0l1Q0xsQTRtRXVQQUF4QTJLS2hDOXVvbmJScVRyeUhGVnVISGpBM3lLTDNGb1dhYzJRcGF3NUhoMmRtZDNOcE9iNlZVNlRRRWdoZ0Z3aURsQjRFK1B0L2sxd0lCUkVGRWlzZThyRlowUnNPUUozYUZMeEhjQ0hVenZGZWF6R29WK2M4ekYyQ3lsenBUT1dpM25oRkNaektoTVlMZVIyaFdkUC95ZjQ4OXFSZjBCa2gwZGVrZjlhRGo5SUNkZlpPdXc5d2hqaXVFejhNeFJyR1RuL0RKSERoY1NxOS8rRVFhYVJLdE40WFYyR0h1bkQ4MytEcHVYamVoOGMwK21sVENpbUd2U1U3UU5KQWVxTmJWQ0VqSDdKM2tnam5SQUhLL1JPcW55Y3JuR2wvelNEdGl2MjUrUnc4TS9tTzFIc3AxcnhmM1dFaGMxU3UrOUVUUFp1T0NJTnU0WExscGRvL0diRU5zVlJobmg2OUpTTlo3cGQ0UHRENTJTdTM5QUFnQUEifQ== -->
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["gender"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"Man","2":"4743"},{"1":"Non-binary","2":"713"},{"1":"Other or prefer not to answer","2":"268"},{"1":"Prefer not to answer","2":"1"},{"1":"Woman","2":"20359"},{"1":"NA","2":"148"}],"options":{"columns":{"min":{},"max":[10],"total":[2]},"rows":{"min":[10],"max":[10],"total":[6]},"pages":{}}}
   </script>
 </div>
 <!-- rnb-frame-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTkFcbmBgYCJ9 -->
-<pre class="r"><code>NA</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICAjZ3JvdXBfYnkoZ2VuZGVyKSAlPiVcbiAgI3N1bW1hcml6ZShuID0gbigpKVxuc3VydmV5X2NsZWFuIDwtIHN1cnZleVxuYGBgIn0= -->
+<pre class="r"><code>  #group_by(gender) %&gt;%
+  #summarize(n = n())
+survey_clean &lt;- survey</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>For most purposes we can consider “prefer not to answer” and “NA” (did not answer) to be the same. The “Other or prefer not to answer” observations are more tricky, because there is no way to distinguish between survey respondents who identify with a gender that is not male, female or non-binary and those that preferred not to answer. For our purposes, it will be sufficient to group all three responses together as “Other or prefer not to answer.”</p>
+<p>For most purposes we can consider “prefer not to answer” and “NA” (did not answer) to be the same. Let’s combine these.</p>
+<p>The “Other or prefer not to answer” observations are more tricky, because there is no way to distinguish between survey respondents who identify with a gender that is not male, female or non-binary and those that preferred not to answer. For our purposes, it would be sufficient to group all three responses together as “Other or prefer not to answer,” but we will keep the did not respond entries as NA for now.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VydmV5X2NsZWFuIDwtIHN1cnZleV9jbGVhbiAlPiVcbiAgbXV0YXRlKGdlbmRlcl9jbGVhbiA9IHN0cl9yZXBsYWNlX2FsbChnZW5kZXIsIFwiUHJlZmVyIG5vdCB0byBhbnN3ZXJcIiwgXCJPdGhlciBvciBwcmVmZXIgbm90IHRvIGFuc3dlclwiKSkgJT4lXG4jICBzZWxlY3QoLWdlbmRlcilcblxuc3VydmV5X2NsZWFuICU+JSBcbiAgZ3JvdXBfYnkoZ2VuZGVyX2NsZWFuKSAlPiVcbiAgc3VtbWFyaXplKG4gPSBuKCkpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VydmV5X2NsZWFuIDwtIHN1cnZleV9jbGVhbiAlPiVcbiAgbXV0YXRlKGdlbmRlcl9jbGVhbiA9IHN0cl9yZXBsYWNlX2FsbChnZW5kZXIsIFwiUHJlZmVyIG5vdCB0byBhbnN3ZXJcIiwgXCJPdGhlciBvciBwcmVmZXIgbm90IHRvIGFuc3dlclwiKSkgJT4lXG4jICBzZWxlY3QoLWdlbmRlcilcbiAgbXV0YXRlKGdlbmRlcl9mY3QgPSBhcy5mYWN0b3IoZ2VuZGVyX2NsZWFuKSlcblxuc3VydmV5X2NsZWFuICU+JSBcbiAgZ3JvdXBfYnkoZ2VuZGVyX2NsZWFuKSAlPiVcbiAgc3VtbWFyaXplKG4gPSBuKCkpXG5gYGAifQ== -->
 <pre class="r"><code>survey_clean &lt;- survey_clean %&gt;%
   mutate(gender_clean = str_replace_all(gender, &quot;Prefer not to answer&quot;, &quot;Other or prefer not to answer&quot;)) %&gt;%
 #  select(-gender)
+  mutate(gender_fct = as.factor(gender_clean))
 
 survey_clean %&gt;% 
   group_by(gender_clean) %&gt;%
   summarize(n = n())</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gc3VydmV5X2NsZWFuKC4pIDogY291bGQgbm90IGZpbmQgZnVuY3Rpb24gXCJzdXJ2ZXlfY2xlYW5cIlxuIn0= -->
-<pre><code>Error in survey_clean(.) : could not find function &quot;survey_clean&quot;</code></pre>
-<!-- rnb-output-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6NSwibmNvbCI6Miwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyI1IHggMiJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUExMVJRVTdETUJEY09EVW9FUVZFejBqNVFDSWhMandBY1lOS0NFUnZ5RTNjTmlKZFI0NnJ3bzBiSCtCVHZBbXBaWjNZQ094RFBEdTc0OWxSN3E5bmwra3NCWUFZUnNBaDVnU0JQejdjNUZjQUkwWkZSSTNFM3E4ME5DRmd5Vk03NVJyeHJVQUgwenVGK2J4R29kOGNjejQxSzZrenBiTld5d1VoVkNZektoUFliYVYyUS94SnJla05nR1JQaCs1eC96eWNmWkRiRjFsVFBTVU1uOEZPSE1WYWRtNGY1c2lqcGNSSzZ1ZXlrYitMUlJnb0U2MjJoVmRiTy9aT0gzTC9EaTNLUm5UZXdwTnBKWXdvRnByMFZPMEN5YUZxVGEyUVJHd3lCUGtuam5SQW5HelFibExsNVdxREwvbUZOZWpid3hrN3pQOWdObGl5ZmZBdkRpUXVhNVIrOTBiTVplT0tZMHJjQnk1YVhhUHhTWWp0Q3FPTThITnBxUnJQOU5sZzl3TnBtTkd1SmdJQUFBPT0ifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["gender_clean"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"Man","2":"4743"},{"1":"Non-binary","2":"713"},{"1":"Other or prefer not to answer","2":"269"},{"1":"Woman","2":"20359"},{"1":"NA","2":"148"}],"options":{"columns":{"min":{},"max":[10],"total":[2]},"rows":{"min":[10],"max":[10],"total":[5]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTkFcbk5BXG5gYGAifQ== -->
+<pre class="r"><code>NA
+NA</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Doing that cleaning with this as strings was pretty painful. Probably much easier with forcats.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2VuZGVyX2NhdGVnb3JpZXMgPC0gYyhcIk1hblwiLCBcIldvbWFuXCIsIFwiTm9uLWJpbmFyeVwiLCBcIk90aGVyIG9yIHByZWZlciBub3QgdG8gYW5zd2VyXCIpXG5zdXJ2ZXlfY2xlYW4gPC0gc3VydmV5X2NsZWFuICU+JVxuICBtdXRhdGUoZ2VuZGVyX2NhdHMgPSBmY3RfY29sbGFwc2UoZ2VuZGVyLCBcIlByZWZlciBub3QgdG8gYW5zd2VyXCIgPSBcIk90aGVyIG9yIHByZWZlciBub3QgdG8gYW5zd2VyXCIpKVxuYGBgIn0= -->
+<pre class="r"><code>gender_categories &lt;- c(&quot;Man&quot;, &quot;Woman&quot;, &quot;Non-binary&quot;, &quot;Other or prefer not to answer&quot;)
+survey_clean &lt;- survey_clean %&gt;%
+  mutate(gender_cats = fct_collapse(gender, &quot;Prefer not to answer&quot; = &quot;Other or prefer not to answer&quot;))</code></pre>
+<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
@@ -338,7 +359,7 @@ R Core Team. 2019. <em>R: A Language and Environment for Statistical Computing</
 </div>
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiVGlkeSBUdWVzZGF5IDIwMjEtMjEgQXNrIGEgbWFuYWdlciBzdXJ2ZXkiCm91dHB1dDoKICBnaXRodWJfZG9jdW1lbnQ6IGRlZmF1bHQKICBodG1sX25vdGVib29rOiBkZWZhdWx0CiAgaHRtbF9kb2N1bWVudDoKICAgIGRmX3ByaW50OiBwYWdlZAogICAgc2VsZl9jb250YWluZWQ6IGZhbHNlCmJpYmxpb2dyYXBoeTogWyIuLi90aWR5dHVlc2RheS5iaWIiXQpub2NpdGU6ICdAKicKLS0tCgojIyBJbnRyb2R1Y3Rpb24KCgojIyBTZXR1cApgYGB7ciBzZXR1cCwgbWVzc2FnZSA9IEZBTFNFfQpsaWJyYXJ5KHRpZHl0dWVzZGF5UikKbGlicmFyeSh0aWR5dmVyc2UpCmBgYAoKPCEtLSAjIyBJbXBvcnQgZGF0YSAtIGZpcnN0IHRpbWUgLS0+CjwhLS0gYGBge3IgZ2V0X3RoZV9kYXRhLCBjYWNoZSA9IFRSVUUsIG1lc3NhZ2UgPSBGQUxTRX0gLS0+CjwhLS0gc3VydmV5IDwtIHJlYWRfY3N2KCdodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vcmZvcmRhdGFzY2llbmNlL3RpZHl0dWVzZGF5L21hc3Rlci9kYXRhLzIwMjEvMjAyMS0wNS0xOC9zdXJ2ZXkuY3N2JykgLS0+CjwhLS0gd3JpdGVfY3N2KHN1cnZleSwgJ2RhdGEvc3VydmV5LmNzdicpIC0tPgo8IS0tIHJtIHR1ZXNkYXRhIC0tPgo8IS0tIGBgYCAtLT4KCiMjIEltcG9ydCBkYXRhIC0gc3Vic2VxdWVudCB0aW1lcwpgYGB7ciBnZXRfdGhlX2RhdGFfbG9jYWwsIGNhY2hlID0gVFJVRSwgbWVzc2FnZSA9IEZBTFNFfQpzdXJ2ZXkgPC0gcmVhZF9jc3YoJ2RhdGEvc3VydmV5LmNzdicpCmdsaW1wc2Uoc3VydmV5KQpgYGAKCiMjIERhdGEgY2xlYW5pbmcKVGhpcyBtYXkgdGFrZSBzb21lIHRpbWUgLi4uCgpMZXQncyBzdGFydCBieSBjbGVhbmluZyB0aGUgZ2VuZGVyIGVudHJpZXMgc28gaXQgY2FuIGJlIGNvbnZlcnRlZCB0byBhIGZhY3Rvci4KYGBge3J9CnN1cnZleSAlPiUgCiAgZ3JvdXBfYnkoZ2VuZGVyKSAlPiUKICBzdW1tYXJpemUobiA9IG4oKSkKc3VydmV5X2NsZWFuIDwtIHN1cnZleQpgYGAKRm9yIG1vc3QgcHVycG9zZXMgd2UgY2FuIGNvbnNpZGVyICJwcmVmZXIgbm90IHRvIGFuc3dlciIgYW5kICJOQSIgKGRpZCBub3QgYW5zd2VyKSB0byBiZSB0aGUgc2FtZS4gVGhlICJPdGhlciBvciBwcmVmZXIgbm90IHRvIGFuc3dlciIgb2JzZXJ2YXRpb25zIGFyZSBtb3JlIHRyaWNreSwgYmVjYXVzZSB0aGVyZSBpcyBubyB3YXkgdG8gZGlzdGluZ3Vpc2ggYmV0d2VlbiBzdXJ2ZXkgcmVzcG9uZGVudHMgd2hvIGlkZW50aWZ5IHdpdGggYSBnZW5kZXIgdGhhdCBpcyBub3QgbWFsZSwgZmVtYWxlIG9yIG5vbi1iaW5hcnkgYW5kIHRob3NlIHRoYXQgcHJlZmVycmVkIG5vdCB0byBhbnN3ZXIuIEZvciBvdXIgcHVycG9zZXMsIGl0IHdpbGwgYmUgc3VmZmljaWVudCB0byBncm91cCBhbGwgdGhyZWUgcmVzcG9uc2VzIHRvZ2V0aGVyIGFzICJPdGhlciBvciBwcmVmZXIgbm90IHRvIGFuc3dlciIuCmBgYHtyfQpzdXJ2ZXlfY2xlYW4gPC0gc3VydmV5X2NsZWFuICU+JQogIG11dGF0ZShnZW5kZXJfY2xlYW4gPSBzdHJfcmVwbGFjZV9hbGwoZ2VuZGVyLCAiUHJlZmVyIG5vdCB0byBhbnN3ZXIiLCAiT3RoZXIgb3IgcHJlZmVyIG5vdCB0byBhbnN3ZXIiKSkgIyAlPiUKIyAgc2VsZWN0KC1nZW5kZXIpCgpzdXJ2ZXlfY2xlYW4gJT4lIAogIGdyb3VwX2J5KGdlbmRlcl9jbGVhbikgJT4lCiAgc3VtbWFyaXplKG4gPSBuKCkpCmBgYAoKCgojIFN0ZXAgMTogRml4IHVwIGNhdGVnb3JpZXMgZm9yIGFnZSwgZWR1Y2F0aW9uCiMgU3RlcCAyOiBOb3JtYWxpc2Uvc3RhbmRhcmRpc2UgY3VycmVuY2llcywgY3JlYXRlIHRvdGFsIHNhbGFyeQojIFN0ZXAgMzogQ2xlYW4gZ2VuZGVyIGludG8gY2F0ZWdvcmllcwoKCgojIyBSZWZlcmVuY2VzCg==</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiVGlkeSBUdWVzZGF5IDIwMjEtMjEgQXNrIGEgbWFuYWdlciBzdXJ2ZXkiCm91dHB1dDoKICBnaXRodWJfZG9jdW1lbnQ6IGRlZmF1bHQKICBodG1sX25vdGVib29rOiBkZWZhdWx0CiAgaHRtbF9kb2N1bWVudDoKICAgIGRmX3ByaW50OiBwYWdlZAogICAgc2VsZl9jb250YWluZWQ6IGZhbHNlCmJpYmxpb2dyYXBoeTogWyIuLi90aWR5dHVlc2RheS5iaWIiXQpub2NpdGU6ICdAKicKLS0tCgojIyBJbnRyb2R1Y3Rpb24KCgojIyBTZXR1cApgYGB7ciBzZXR1cCwgbWVzc2FnZSA9IEZBTFNFfQpsaWJyYXJ5KHRpZHl0dWVzZGF5UikKbGlicmFyeSh0aWR5dmVyc2UpCmBgYAoKPCEtLSAjIyBJbXBvcnQgZGF0YSAtIGZpcnN0IHRpbWUgLS0+CjwhLS0gYGBge3IgZ2V0X3RoZV9kYXRhLCBjYWNoZSA9IFRSVUUsIG1lc3NhZ2UgPSBGQUxTRX0gLS0+CjwhLS0gc3VydmV5IDwtIHJlYWRfY3N2KCdodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vcmZvcmRhdGFzY2llbmNlL3RpZHl0dWVzZGF5L21hc3Rlci9kYXRhLzIwMjEvMjAyMS0wNS0xOC9zdXJ2ZXkuY3N2JykgLS0+CjwhLS0gd3JpdGVfY3N2KHN1cnZleSwgJ2RhdGEvc3VydmV5LmNzdicpIC0tPgo8IS0tIHJtIHR1ZXNkYXRhIC0tPgo8IS0tIGBgYCAtLT4KCiMjIEltcG9ydCBkYXRhIC0gc3Vic2VxdWVudCB0aW1lcwpgYGB7ciBnZXRfdGhlX2RhdGFfbG9jYWwsIGNhY2hlID0gVFJVRSwgbWVzc2FnZSA9IEZBTFNFfQpzdXJ2ZXkgPC0gcmVhZF9jc3YoJ2RhdGEvc3VydmV5LmNzdicpCmdsaW1wc2Uoc3VydmV5KQpgYGAKCiMjIERhdGEgY2xlYW5pbmcKVGhpcyBtYXkgdGFrZSBzb21lIHRpbWUgLi4uCgpMZXQncyBzdGFydCBieSBjbGVhbmluZyB0aGUgZ2VuZGVyIGVudHJpZXMgc28gaXQgY2FuIGJlIGNvbnZlcnRlZCB0byBhIGZhY3Rvci4KYGBge3J9CnN1cnZleSAlPiUgCiAgY291bnQoZ2VuZGVyKQpzdXJ2ZXlfY2xlYW4gPC0gc3VydmV5CmBgYApGb3IgbW9zdCBwdXJwb3NlcyB3ZSBjYW4gY29uc2lkZXIgInByZWZlciBub3QgdG8gYW5zd2VyIiBhbmQgIk5BIiAoZGlkIG5vdCBhbnN3ZXIpIHRvIGJlIHRoZSBzYW1lLiBMZXQncyBjb21iaW5lIHRoZXNlLgoKVGhlICJPdGhlciBvciBwcmVmZXIgbm90IHRvIGFuc3dlciIgb2JzZXJ2YXRpb25zIGFyZSBtb3JlIHRyaWNreSwgYmVjYXVzZSB0aGVyZSBpcyBubyB3YXkgdG8gZGlzdGluZ3Vpc2ggYmV0d2VlbiBzdXJ2ZXkgcmVzcG9uZGVudHMgd2hvIGlkZW50aWZ5IHdpdGggYSBnZW5kZXIgdGhhdCBpcyBub3QgbWFsZSwgZmVtYWxlIG9yIG5vbi1iaW5hcnkgYW5kIHRob3NlIHRoYXQgcHJlZmVycmVkIG5vdCB0byBhbnN3ZXIuIEZvciBvdXIgcHVycG9zZXMsIGl0IHdvdWxkIGJlIHN1ZmZpY2llbnQgdG8gZ3JvdXAgYWxsIHRocmVlIHJlc3BvbnNlcyB0b2dldGhlciBhcyAiT3RoZXIgb3IgcHJlZmVyIG5vdCB0byBhbnN3ZXIiLCBidXQgd2Ugd2lsbCBrZWVwIHRoZSBkaWQgbm90IHJlc3BvbmQgZW50cmllcyBhcyBOQSBmb3Igbm93LgpgYGB7cn0Kc3VydmV5X2NsZWFuIDwtIHN1cnZleV9jbGVhbiAlPiUKICBtdXRhdGUoZ2VuZGVyX2NsZWFuID0gc3RyX3JlcGxhY2VfYWxsKGdlbmRlciwgIlByZWZlciBub3QgdG8gYW5zd2VyIiwgIk90aGVyIG9yIHByZWZlciBub3QgdG8gYW5zd2VyIikpICU+JQojICBzZWxlY3QoLWdlbmRlcikKICBtdXRhdGUoZ2VuZGVyX2ZjdDEgPSBhcy5mYWN0b3IoZ2VuZGVyX2NsZWFuKSkKCnN1cnZleV9jbGVhbiAlPiUgCiAgY291bnQoZ2VuZGVyX2NsZWFuKQpgYGAKRG9pbmcgdGhhdCBjbGVhbmluZyB3aXRoIHRoaXMgYXMgc3RyaW5ncyB3YXMgcHJldHR5IHBhaW5mdWwuIFByb2JhYmx5IG11Y2ggZWFzaWVyIHdpdGggZm9yY2F0cy4KCmBgYHtyfQpzdXJ2ZXlfY2xlYW4gPC0gc3VydmV5ICU+JQogIG11dGF0ZShnZW5kZXJfY2F0cyA9IGZjdF9jb2xsYXBzZShnZW5kZXIsICJQcmVmZXIgbm90IHRvIGFuc3dlciIgPSAiT3RoZXIgb3IgcHJlZmVyIG5vdCB0byBhbnN3ZXIiKSkgJT4lCiAgbXV0YXRlKGdlbmRlcl9mY3QyID0gYXMuZmFjdG9yKGdlbmRlcl9jYXRzKSkKYGBgCgoKCgojIFN0ZXAgMTogRml4IHVwIGNhdGVnb3JpZXMgZm9yIGFnZSwgZWR1Y2F0aW9uCiMgU3RlcCAyOiBOb3JtYWxpc2Uvc3RhbmRhcmRpc2UgY3VycmVuY2llcywgY3JlYXRlIHRvdGFsIHNhbGFyeQojIFN0ZXAgMzogQ2xlYW4gZ2VuZGVyIGludG8gY2F0ZWdvcmllcwoKCgojIyBSZWZlcmVuY2VzCg==</div>
 
 
 
