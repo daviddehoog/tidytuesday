@@ -10,8 +10,55 @@ bibliography: ["../tidytuesday.bib"]
 nocite: '@*'
 ---
 
+## Introduction
+
+
+## Setup
+```{r setup, message = FALSE}
+library(tidytuesdayR)
+library(tidyverse)
+```
+
+<!-- ## Import data - first time -->
+<!-- ```{r get_the_data, cache = TRUE, message = FALSE} -->
+<!-- survey <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-05-18/survey.csv') -->
+<!-- write_csv(survey, 'data/survey.csv') -->
+<!-- rm tuesdata -->
+<!-- ``` -->
+
+## Import data - subsequent times
+```{r get_the_data_local, cache = TRUE, message = FALSE}
+survey <- read_csv('data/survey.csv')
+glimpse(survey)
+```
+
+## Data cleaning
+This may take some time ...
+
+Let's start by cleaning the gender entries so it can be converted to a factor.
+```{r}
+survey %>% 
+  group_by(gender) %>%
+  summarize(n = n())
+survey_clean <- survey
+```
+For most purposes we can consider "prefer not to answer" and "NA" (did not answer) to be the same. The "Other or prefer not to answer" observations are more tricky, because there is no way to distinguish between survey respondents who identify with a gender that is not male, female or non-binary and those that preferred not to answer. For our purposes, it will be sufficient to group all three responses together as "Other or prefer not to answer".
+```{r}
+survey_clean <- survey_clean %>%
+  mutate(gender_clean = str_replace_all(gender, "Prefer not to answer", "Other or prefer not to answer")) # %>%
+#  select(-gender)
+
+survey_clean %>% 
+  group_by(gender_clean) %>%
+  summarize(n = n())
+```
 
 
 
+# Step 1: Fix up categories for age, education
+# Step 2: Normalise/standardise currencies, create total salary
+# Step 3: Clean gender into categories
 
-# References
+
+
+## References
