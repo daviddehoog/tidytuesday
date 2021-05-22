@@ -54,8 +54,13 @@ survey_clean <- survey %>%
 survey_clean %>%
   count(gender) %>%
   mutate (percent = round(n / sum(n) * 100, 1)) %>%
-  arrange(desc(n))
+  arrange(desc(percent)) %>%
+  ggplot(aes(x = reorder(gender, -percent), y = percent)) + geom_col()
 ```
+
+
+
+
 I had cleaned this as strings, but it was pretty painful. Easier with forcats.
 
 
