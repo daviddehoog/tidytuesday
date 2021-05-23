@@ -17,6 +17,7 @@ nocite: '@*'
 ```{r setup, message = FALSE}
 library(tidytuesdayR)
 library(tidyverse)
+library(countrycode)
 ```
 
 <!-- ## Import data - first time -->
@@ -44,34 +45,66 @@ First, there is a single "prefer not to answer" observation even though there ar
 Second, these observations currently use the character data type, and it would be helpful for future analyses to have gender as a categorical variable.
 Once tidied up, added a percentage column in case of future plots.
 ```{r clean gender}
+# Clean the gender data, by collapsing one category into another.
 survey_clean <- survey %>%
   mutate(gender_clean = fct_collapse(gender, "Other or prefer not to answer" = "Prefer not to answer")) %>%
-  # clean up the temporary columns so variable is 'gender' and is of type categorical  
+# Clean up the temporary columns so variable name is 'gender' and set data type to categorical.
   select(-gender) %>%
   mutate(gender = as.factor(gender_clean)) %>%
   select(-gender_clean)
   
+# Calculate the percentages of each category, sort the data and plot it.
 survey_clean %>%
   count(gender) %>%
   mutate (percent = round(n / sum(n) * 100, 1)) %>%
   arrange(desc(percent)) %>%
   ggplot(aes(x = reorder(gender, -percent), y = percent)) + geom_col()
 ```
+I had cleaned this as strings, but it was pretty painful. Easier with forcats. To simplify the charty, it would be nice to be able to collapse the Other or prefer not to answer into NA ... another time.
 
+Let's look at country now.
 
-
-
-I had cleaned this as strings, but it was pretty painful. Easier with forcats.
-
-
+```{r}
+survey %>% 
+  count(country) %>%
+  arrange(desc(n))
 ```
+Let's have a go at tidying some of these up ...
+```{r}
+
+survey$country <- survey$country %>%
+  str_remove_all("'.'") %>% # remove full stops
+  str_to_lower()        # remove capitalisation inconsistencies
+
+survey_clean <- survey %>%
+  # select(country, state, city) %>% # Testing only, shows a bit more context for cleaning ...
+  mutate(country = case_when(
+    country %in% c("england", "englang", "scotland", "wales", "northern ireland", "united kindom", "unites kingdom", "uk", "u.k.") ~ "united kingdom",
+    country %in% c("can", "canda", "csnada", "canad") ~ "canada",
+    country == "danmark" ~ "denmark",
+    country == "nl" ~ "netherlands",
+    country %in% c("untied states", "united state", "united stated", "united sates", "unites states", "united statws", "united state of america") ~ "united states", # There must be a regular expression solution to this mess
+    TRUE ~ country
+    ), country_code = countrycode(country, origin = 'country.name', destination = 'iso3c')) # %>%
+ # filter(is.na(country_code) == TRUE) # Testing only, shows how far to go to clean this data ...
+```
+
+```{r}
+survey_clean %>%
+  mutate(country_name = countrycode(country_code, origin = 'iso3c', destination = 'country.name')) %>%
+  group_by(country_name) %>%
+  summarise(count = n()) %>%
+  top_n(n = 10, wt = count) %>%
+  ggplot(aes(x = reorder(country_name, count), y = count)) + geom_col() + coord_flip()
+```
+
 
 
 
 
 # Step 1: Fix up categories for age, education
 # Step 2: Normalise/standardise currencies, create total salary
-# Step 3: Clean gender into categories
+
 
 
 
