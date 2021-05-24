@@ -12,6 +12,7 @@ nocite: '@*'
 
 ## Introduction
 
+My first serious attempt at using R to clean real data. 
 
 ## Setup
 ```{r setup, message = FALSE}
@@ -35,6 +36,8 @@ glimpse(survey)
 ```
 
 ## Data cleaning - this may take some time ...
+
+### Gender
 Let's start by looking at the gender variable in our dataset.
 ```{r}
 survey %>% 
@@ -44,7 +47,8 @@ While this looks pretty clean, there are two immediate issues.
 First, there is a single "prefer not to answer" observation even though there are numerous observations described as  "Other or prefer not to answer". Since there is no way to distinguish between survey respondents who are identifying with an "other" gender not listed and those that "prefer not to answer", this group of observations cannot be separated. To simplify, let's roll the single "prefer not to answer" observation into this broader group.
 Second, these observations currently use the character data type, and it would be helpful for future analyses to have gender as a categorical variable.
 Once tidied up, added a percentage column in case of future plots.
-```{r clean gender}
+
+```{r clean_gender}
 # Clean the gender data, by collapsing one category into another.
 survey_clean <- survey %>%
   mutate(gender_clean = fct_collapse(gender, "Other or prefer not to answer" = "Prefer not to answer")) %>%
@@ -60,17 +64,22 @@ survey_clean %>%
   arrange(desc(percent)) %>%
   ggplot(aes(x = reorder(gender, -percent), y = percent)) + geom_col()
 ```
-I had cleaned this as strings, but it was pretty painful. Easier with forcats. To simplify the charty, it would be nice to be able to collapse the Other or prefer not to answer into NA ... another time.
 
+#### Questions
+1. I had a go at using stringr to clean this as strings, but it was pretty painful. This forcats package solution seemed easier and probably better suited to the categorical data that I was trying to wrangle. Are there positives/negatives to either approach ?
+2. Is there merit in collapsing the "Other or prefer not to answer" group of observations into "NA". If so, how ..? I got stuck trying to mutate the same column multiple times and R wasn't happy.
+
+### Country
 Let's look at country now.
 
-```{r}
+```{r country_view}
 survey %>% 
   count(country) %>%
   arrange(desc(n))
 ```
-Let's have a go at tidying some of these up ...
-```{r}
+What a mess. Let's have a go at tidying some of these up ...
+
+```{r country_clean}
 
 survey$country <- survey$country %>%
   str_remove_all("'.'") %>% # remove full stops
@@ -89,7 +98,12 @@ survey_clean <- survey %>%
  # filter(is.na(country_code) == TRUE) # Testing only, shows how far to go to clean this data ...
 ```
 
-```{r}
+#### Questions:
+3. Is there a good regular expression approach to cleaning these data, especially all the variations on US, United States, Untied Status (sic) etc. ?
+4. Is there a good approach to whittling down the remaining entries (eg. those with "uk" in them) ? Or is this diminishing returns in a dataset of this scale and distribution ? My thinking was that Canada and the UK are pretty close in number of observations, so it might be worth pressing on.
+5. At what point should I switch to manually editing the data, instead of using R, and keep track of the changes to the CSV file through version control software (like git) ?
+
+```{r country_plot}
 survey_clean %>%
   mutate(country_name = countrycode(country_code, origin = 'iso3c', destination = 'country.name')) %>%
   group_by(country_name) %>%
@@ -97,15 +111,4 @@ survey_clean %>%
   top_n(n = 10, wt = count) %>%
   ggplot(aes(x = reorder(country_name, count), y = count)) + geom_col() + coord_flip()
 ```
-
-
-
-
-
-# Step 1: Fix up categories for age, education
-# Step 2: Normalise/standardise currencies, create total salary
-
-
-
-
 ## References
