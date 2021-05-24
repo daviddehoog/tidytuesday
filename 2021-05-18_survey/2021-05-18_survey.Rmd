@@ -111,4 +111,5 @@ survey_clean %>%
   top_n(n = 10, wt = count) %>%
   ggplot(aes(x = reorder(country_name, count), y = count)) + geom_col() + coord_flip()
 ```
+
 ## References
