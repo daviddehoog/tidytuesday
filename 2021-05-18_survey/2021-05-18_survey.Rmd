@@ -79,37 +79,42 @@ survey %>%
 ```
 What a mess. Let's have a go at tidying some of these up ...
 
-```{r country_clean}
+```{r}
 
-survey$country <- survey$country %>%
-  str_remove_all("'.'") %>% # remove full stops
-  str_to_lower()        # remove capitalisation inconsistencies
-
-survey_clean <- survey %>%
-  # select(country, state, city) %>% # Testing only, shows a bit more context for cleaning ...
+survey_clean <- survey_clean %>%
+  mutate(country = str_to_lower(country)) %>%
   mutate(country = case_when(
-    country %in% c("england", "englang", "scotland", "wales", "northern ireland", "united kindom", "unites kingdom", "uk", "u.k.") ~ "united kingdom",
+    str_detect(country, "england") ~ "united kingdom",
+    str_detect(country, "scotland") ~ "united kingdom",
+    str_detect(country, "wales") ~ "united kingdom",
+    str_detect(country, "northern ireland") ~ "united kingdom",
+    country %in% c("englang", "united kindom", "unites kingdom", "u.k.", "gb") ~ "united kingdom",
     country %in% c("can", "canda", "csnada", "canad") ~ "canada",
     country == "danmark" ~ "denmark",
-    country == "nl" ~ "netherlands",
-    country %in% c("untied states", "united state", "united stated", "united sates", "unites states", "united statws", "united state of america") ~ "united states", # There must be a regular expression solution to this mess
+    country == "australi" ~ "australia",
+    country == "nz" ~ "new zealand",
+    country == "brasil" ~ "brazil",
+    country %in% c("nl", "nederland") ~ "netherlands",
+    country %in% c("untied states", "united state", "united stated", "united sates", "unites states", "united statws", "united state of america", "united statew", "united stares", "unitef stated", "uniyed states", "unted states", "usaa", "california", "united stateds", "unite states") ~ "united states",
     TRUE ~ country
-    ), country_code = countrycode(country, origin = 'country.name', destination = 'iso3c')) # %>%
- # filter(is.na(country_code) == TRUE) # Testing only, shows how far to go to clean this data ...
-```
+    ), country_code = countrycode(country, origin = 'country.name', destination = 'iso3c'))
 
-#### Questions:
-3. Is there a good regular expression approach to cleaning these data, especially all the variations on US, United States, Untied Status (sic) etc. ?
-4. Is there a good approach to whittling down the remaining entries (eg. those with "uk" in them) ? Or is this diminishing returns in a dataset of this scale and distribution ? My thinking was that Canada and the UK are pretty close in number of observations, so it might be worth pressing on.
-5. At what point should I switch to manually editing the data, instead of using R, and keep track of the changes to the CSV file through version control software (like git) ?
-
-```{r country_plot}
 survey_clean %>%
   mutate(country_name = countrycode(country_code, origin = 'iso3c', destination = 'country.name')) %>%
   group_by(country_name) %>%
   summarise(count = n()) %>%
   top_n(n = 10, wt = count) %>%
   ggplot(aes(x = reorder(country_name, count), y = count)) + geom_col() + coord_flip()
+
 ```
+## Finance data
+
+```{r}
+temp <- survey_clean %>%
+  select(annual_salary, currency, currency_other) %>%
+  filter(currency == "USD" & is.na(currency_other) == FALSE))
+  
+```
+
 
 ## References
