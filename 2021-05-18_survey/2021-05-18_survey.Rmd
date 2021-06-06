@@ -180,7 +180,7 @@ survey_clean %>%
   mutate(usd_salary = annual_salary * rate) %>%
   group_by(how_old_are_you) %>%
   summarize(avg_salary = mean(usd_salary)) %>%
-  ggplot(aes(x = how_old_are_you, y = avg_salary)) + geom_col() + scale_y_continuous("Average annual salary (US$)", label = label_dollar()) + scale_x_binned("Age group")
+  ggplot(aes(x = how_old_are_you, y = avg_salary)) + geom_col() + scale_y_continuous("Average annual salary (US$)", label = label_dollar()) + scale_x_discrete("Age group")
 ```
 
 
