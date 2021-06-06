@@ -19,6 +19,7 @@ My first serious attempt at using R to clean real data.
 library(tidytuesdayR)
 library(tidyverse)
 library(countrycode)
+library(scales)
 ```
 
 <!-- ## Import data - first time -->
@@ -41,7 +42,7 @@ glimpse(survey)
 Let's start by looking at the gender variable in our dataset.
 ```{r}
 survey %>% 
-  count(gender)
+  count(gender, sort = TRUE)
 ```
 While this looks pretty clean, there are two immediate issues.
 First, there is a single "prefer not to answer" observation even though there are numerous observations described as  "Other or prefer not to answer". Since there is no way to distinguish between survey respondents who are identifying with an "other" gender not listed and those that "prefer not to answer", this group of observations cannot be separated. To simplify, let's roll the single "prefer not to answer" observation into this broader group.
@@ -74,8 +75,7 @@ Let's look at country now.
 
 ```{r country_view}
 survey %>% 
-  count(country) %>%
-  arrange(desc(n))
+  count(country, sort = TRUE)
 ```
 What a mess. Let's have a go at tidying some of these up ...
 
@@ -110,10 +110,67 @@ survey_clean %>%
 ## Finance data
 
 ```{r}
-temp <- survey_clean %>%
+# Read in a list of exchange rates. In future I would want this to be dynamically generated, using an API like fixerapi, but for now, I'd like the exchange rates to stay the same, so it I can more easily see errors I'm creating.
+rates <- read_csv("data/exchange.csv")
+
+survey_clean %>%
   select(annual_salary, currency, currency_other) %>%
-  filter(currency == "USD" & is.na(currency_other) == FALSE))
-  
+  filter(currency != "USD" & is.na(currency) == FALSE) %>%
+  count(currency, sort = TRUE)
+  # Returns non-USD entries
+
+survey_clean %>%
+  select(annual_salary, currency, currency_other) %>%
+  filter(currency == "Other" & is.na(currency_other) == FALSE)
+  # Returns entries where the currency was "Other", so hopefully there's something in the "Other" field to mutate across.
+
+survey_clean %>%
+  select(annual_salary, currency, currency_other) %>%
+  filter(currency == "USD" & is.na(currency_other) == FALSE)
+  # Returns USD entries where there was also something in the "Other" field.
+
+survey_clean %>%
+  select(annual_salary, currency, currency_other) %>%
+  inner_join(rates, by = c("currency" = "source")) %>%
+  filter(currency == "USD" & is.na(currency_other) == TRUE & annual_salary != 0) %>%
+  mutate(usd_salary = annual_salary * rate) %>%
+  select(usd_salary) %>%
+  arrange(desc(usd_salary)) %>%
+  ggplot(aes(usd_salary)) + geom_histogram(binwidth = 5000) + scale_x_continuous("Annual salary ($US)", label = label_dollar(), limits = c(1000, 500000))
+# Where did the 2 missing values come from, given filtering for NA above?
+# What are the 90 rows with 'non-finite values'? 
+
+```
+## Going to try something crazy ... fitting a linear model to the annual salary calculations, using age (initially)
+
+```{r}
+
+input <- survey_clean %>%
+  select(how_old_are_you, annual_salary, currency, currency_other) %>%
+  inner_join(rates, by = c("currency" = "source")) %>%
+  filter(is.na(currency_other) == TRUE & annual_salary != 0 & how_old_are_you != "under 18") %>%
+  mutate(usd_salary = annual_salary * rate) %>%
+  filter(usd_salary < 1000000) %>%
+  mutate(age = case_when(
+    how_old_are_you == "18-24" ~ 21,
+    how_old_are_you == "25-34" ~ 29.5,
+    how_old_are_you == "35-44" ~ 39.5,
+    how_old_are_you == "45-54" ~ 49.5,
+    how_old_are_you == "55-64" ~ 60,
+    how_old_are_you == "65 or over" ~ 65,
+    )
+  ) %>%
+  mutate(age2 = age * age) %>%
+  select(age, age2, usd_salary) %>%
+  arrange(desc(usd_salary))
+
+model_plot <- ggplot(data = input, aes(x = age, y = usd_salary)) + geom_point() + scale_y_continuous("Annual salary (US$)", label = label_dollar())
+
+model <- lm(usd_salary ~ age + age2, data = input)
+
+model_plot + geom_smooth(method = "lm", formula = y ~ poly(x, 2))
+
+model_plot
 ```
 
 
