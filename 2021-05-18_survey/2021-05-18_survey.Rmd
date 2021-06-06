@@ -172,6 +172,16 @@ model_plot + geom_smooth(method = "lm", formula = y ~ poly(x, 2))
 
 model_plot
 ```
+```{r}
+survey_clean %>%
+  select(how_old_are_you, annual_salary, currency, currency_other) %>%
+  inner_join(rates, by = c("currency" = "source")) %>%
+  filter(is.na(currency_other) == TRUE & annual_salary != 0 & how_old_are_you != "under 18") %>%
+  mutate(usd_salary = annual_salary * rate) %>%
+  group_by(how_old_are_you) %>%
+  summarize(avg_salary = mean(usd_salary)) %>%
+  ggplot(aes(x = how_old_are_you, y = avg_salary)) + geom_col() + scale_y_continuous("Average annual salary (US$)", label = label_dollar()) + scale_x_binned("Age group")
+```
 
 
 ## References
