@@ -10,6 +10,106 @@ bibliography: ["../tidytuesday.bib"]
 nocite: '@*'
 ---
 
+http://www.glfc.org/fishstocking/images/dbstruct.gif
+
+```{r read in data}
+library(tidyverse)
+library(lubridate)
+fishing_raw <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-08/fishing.csv')
+stocked_raw <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-08/stocked.csv')
+```
+
+Appear to have lost 36320 rows in importing the stock data. Still have 56232 rows. Though `r round((36320 / (56232 + 36320) * 100), 0)`% loss seems like a lot.
+
+On a quick inspection using problems() ... 
+
+```{r}
+problems(stocked_raw)
+```
+... it looks like:
+* the tag_no variable is being loaded as a logical variable, when it should be a number or a series of numbers ...
+
+```{r}
+stocked_raw <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-08/stocked.csv', col_types = "ddddffccdddccccddcdccccdcdcccdc")
+```
+No problems ! 
+Here's a list of the column types ...
+SID, d
+YEAR, d
+MONTH, d
+DAY, d
+LAKE, f
+STATE_PROV, f
+SITE, c 
+ST_SITE, c
+LATITUDE, d
+LONGITUDE, d
+GRID, d
+STAT_DIST, c
+LS_MGMT, c
+SPECIES, c
+STRAIN, c
+NO_STOCKED, d
+YEAR_CLASS, d
+STAGE, c
+AGEMONTH, d
+MARK, c
+MARK_EFF, c
+TAG_NO, c
+TAG_RET, d to c
+LENGTH, d
+WEIGHT, d to c
+CONDITION, d
+LOT_CODE, c
+STOCK_METH, c
+AGENCY, c
+VALIDATION, d
+NOTES, c
+
+## Create a date field (where possible)
+```{r}
+stocked_raw %>%
+  mutate(DATE = make_date(YEAR, MONTH, DAY))
+  
+```
+We're really only interested in:
+- chinook salmon aka king salmon, which is the main target for fishing
+- alewife or herring, the main food for chinook salmon
+
+```{r}
+fishing_raw %>%
+  filter(!is.na(values), 
+      year > 1966,# year first stocked
+      species %in% c("Chinook Salmon", "Coho Salmon", "Pacific Salmon", "Alewife") # various names used
+      # geography/totals?
+      ) %>%
+  group_by(lake, year) %>%
+  summarise(total_value = sum(values)) %>%
+  ggplot(aes(x = year, y = total_value)) +
+    geom_line() +
+    facet_wrap(~ lake)
+```
+```{r}
+fishing_raw %>%
+  filter(!is.na(values)) %>%
+  mutate(species = str_to_lower(species)) %>%
+  mutate(species = case_when(
+    species %in% c("amercian eel") ~ "american eel",
+    species %in% c("bullhead", "bullheads", "channel catfish") ~ "channel catfish and bullheads",
+    species %in% c("crappies", "crappie", "rock bass") ~ "rock bass and crappie",
+    species %in% c("herring", "cisco", "chubs", "cisco and chub", "lake whitefish") ~ "cisco and chubs",
+    species %in% c("drum", "sheepshead", "freshwater drum") ~ "freshwater drum or sheepshead",
+    species %in% c("walleye", "blue pike") ~ "walleye and blue pike",
+    TRUE ~ species
+    )
+  ) %>%
+  group_by(lake, year, species) %>%
+  summarise(total_value = sum(values)) %>%
+  ggplot(aes(x = year, y = total_value)) +
+    geom_line() +
+    facet_wrap(~ species)
+```
+
 
 
 # References
