@@ -105,8 +105,47 @@ survey_clean %>%
   summarise(count = n()) %>%
   top_n(n = 10, wt = count) %>%
   ggplot(aes(x = reorder(country_name, count), y = count)) + geom_col() + coord_flip()
+```
+```{r country_map}
+
+library(maps)
+library(highcharter)
+
+dat <- iso3166
+
+map_data <- survey_clean %>%
+  group_by(country_code) %>%
+  summarize(surveys = n()) %>%
+  inner_join(dat, by = c("country_code" = "a3")) %>%
+  select(country_code, ISOname, surveys) %>%
+  arrange(desc(surveys)) # %>%
+#  hcmap(
+#    map = "custom/world-highres3",
+#    value = "surveys",
+#    download_map_data = FALSE,
+#    nullColor = "#DADADA"
+#  )
+  
+```
+Trying another way ...
+```{r}
+
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rgeos)
+
+world_map <- ne_countries(scale = "medium", returnclass = "sf")
+
+plotting <- map_data %>%
+  inner_join(world_map, by = c("country_code" = "iso_a3"))
+
+  ggplot(data = plotting) + geom_sf() + geom_text(data = plotting, aes(x = ))
+
 
 ```
+
+
 ## Finance data
 
 ```{r}
