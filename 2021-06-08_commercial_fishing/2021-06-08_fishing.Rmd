@@ -76,6 +76,8 @@ We're really only interested in:
 - chinook salmon aka king salmon, which is the main target for fishing
 - alewife or herring, the main food for chinook salmon
 
+Something weird in how this data is presented. Lake == michigan but has US totals row ..?
+
 ```{r}
 fishing_raw %>%
   filter(!is.na(values), 
