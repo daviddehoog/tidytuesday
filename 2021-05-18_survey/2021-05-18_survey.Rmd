@@ -111,7 +111,7 @@ survey_clean %>%
 library(maps)
 library(highcharter)
 
-dat <- iso3166
+dat <- iso3166 
 
 map_data <- survey_clean %>%
   group_by(country_code) %>%
@@ -120,14 +120,16 @@ map_data <- survey_clean %>%
   select(country_code, ISOname, surveys) %>%
   arrange(desc(surveys))
 
-hcmap(
-    data = map_data,
+# This consistently returns dodgy results. Number of surveys for each country is wrong ...
+test <- hcmap(
     map = "custom/world-highres3",
-    value = "surveys",
-    joinBy = "ISOname",
     download_map_data = FALSE,
+    data = map_data,
+    value = "surveys",
+   # joinBy = "ISOname",
     nullColor = "#DADADA"
   )
+test
 ```
 Trying another way ...
 ```{r}
