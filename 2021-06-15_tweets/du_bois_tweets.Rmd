@@ -1,0 +1,90 @@
+---
+title: "Tidy Tuesday 2021-25 Du bois tweets"
+output:
+  github_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+    self_contained: false
+bibliography: ["../tidytuesday.bib"]
+nocite: '@*'
+---
+
+```{r setup}
+library(tidyverse)
+library(ggmap)
+
+
+```
+
+## Load the data
+
+<!-- ```{r get_the_data_1st_time}
+tweets <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-15/tweets.csv')
+write_csv(tweets, 'data/tweets.csv')
+rm(tweets)
+```-->
+
+```{r load_data}
+tweets <- read_csv("data/tweets.csv")
+```
+
+## Put the data on a map
+
+```{r map_the_data}
+map_center <- c(lon = -96.665, lat = 37.6)
+background_map <- get_map(map_center, source = "stamen", zoom = 3)
+ggmap(background_map)
+
+tweets %>%
+  filter(is.na(lat) != TRUE | is.na(long) != TRUE) %>%
+  ggmap(background_map, base_layer = ggplot(aes(long, lat))) +
+    geom_point()
+
+```
+
+## How many tweeters?
+
+```{r}
+tweets %>%
+  count(username, sort = TRUE)
+
+# Some kind of network analysis using usernames and the @ in text
+
+
+# What kinds of devices are people using?
+tweets %>%
+  filter(is.na(datetime) != TRUE) %>%
+  select(text, username) %>%
+  mutate(device = case_when(
+    str_detect(text, "iPhone") ~ "Apple",
+    str_detect(text, "iPad") ~ "Apple",
+    str_detect(text, "apple") ~ "Apple",
+    str_detect(text, "TweetDeck") ~ "TweetDeck",
+    str_detect(text, "Crowdfire") ~ "Crowdfire",
+    str_detect(text, "Buffer") ~ "Buffer",
+    str_detect(text, "android") ~ "Android",
+    str_detect(text, "Web App") ~ "Website",
+    )
+  ) %>%
+ # group_by(username, device) %>%
+  count(device, sort = TRUE)
+```
+## Tweets over time ...
+
+```{r}
+library(lubridate)
+
+tweets %>%
+  filter(is.na(datetime) != TRUE) %>%
+  select(datetime, username, followers) %>%
+  mutate(yday = yday(datetime)) %>%
+  group_by(yday) %>%
+  summarize(reach = sum(followers)) %>%
+  arrange(yday) %>%
+  ggplot(aes(x = yday)) +
+    geom_histogram(bins = 20)
+
+
+```
+
