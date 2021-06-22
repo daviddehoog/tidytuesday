@@ -32,14 +32,15 @@ tweets <- read_csv("data/tweets.csv")
 ## Put the data on a map
 
 ```{r map_the_data}
-map_center <- c(lon = -96.665, lat = 37.6)
-background_map <- get_map(map_center, source = "stamen", zoom = 3)
+map_center <- c(lon = 0, lat = 0)
+background_map <- get_map(map_center, source = "stamen", zoom = 2)
 ggmap(background_map)
 
-tweets %>%
-  filter(is.na(lat) != TRUE | is.na(long) != TRUE) %>%
-  ggmap(background_map, base_layer = ggplot(aes(long, lat))) +
-    geom_point()
+clean_tweets <- tweets %>%
+  filter(is.na(lat) != TRUE | is.na(long) != TRUE)
+
+ggmap(background_map) +
+    geom_point(data = clean_tweets, aes(long, lat, size = followers, color = like_count))
 
 ```
 
