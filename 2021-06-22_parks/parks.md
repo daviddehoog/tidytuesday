@@ -214,6 +214,148 @@ parks <- parks %>%
   select(year:total_points, last_col(), everything())
 ```
 
+``` r
+parks %>%
+  select(year, city, ends_with("_points"), total_pct) %>%
+  group_by(year) %>%
+  mutate(year = as.Date(year, format = "%Y")) %>%
+  summarize(avg_park_size = mean(med_park_size_points), avg_city_is_park = mean(park_pct_city_points), avg_park_access = mean(pct_near_park_points), avg_spend_per_res = mean(spend_per_resident_points), avg_amenities = mean(amenities_points), avg_total = mean(total_pct)) %>%
+  ggplot(aes(year)) +
+    geom_line(aes(y = avg_total, color = "total")) +
+    geom_line(aes(y = avg_park_size, color = "size")) +
+    geom_line(aes(y = avg_city_is_park, color = "% city is park")) +
+    geom_line(aes(y = avg_park_access, color = "park access")) +
+    geom_line(aes(y = avg_spend_per_res, color = "spend")) +
+    geom_line(aes(y = avg_amenities, color = "amenities"))
+```
+
+    ## Warning: Removed 3 row(s) containing missing values (geom_path).
+
+![](parks_files/figure-gfm/clumsy_points_over_time-1.png)<!-- -->
+
+``` r
+parks %>%
+  select(year, city, ends_with("_points"), total_pct) %>%
+  group_by(year) %>%
+  summarize(avg_park_size = mean(med_park_size_points), avg_city_is_park = mean(park_pct_city_points), avg_park_access = mean(pct_near_park_points), avg_spend_per_res = mean(spend_per_resident_points), avg_amenities = mean(amenities_points), avg_total = mean(total_pct)) %>%
+  gather(key = "avg_metric", value = "value", avg_park_size:avg_total) %>%
+  ggplot(aes(x = year, y = value, group = avg_metric)) +
+    geom_line(aes(color = avg_metric))
+```
+
+    ## Warning: Removed 3 row(s) containing missing values (geom_path).
+
+![](parks_files/figure-gfm/better_points_over_time-1.png)<!-- --> \#\#
+Explore where biggest changes in points over time
+
+``` r
+rank_over_time <- parks %>%
+  select(city, year, rank) %>%
+  pivot_wider(names_from = year, values_from = rank) %>%
+  mutate(
+    `2019to2020` = replace_na(`2020` - `2019`, 0),
+    `2018to2019` = replace_na(`2019` - `2018`, 0),
+    `2017to2018` = replace_na(`2018` - `2017`, 0),
+    `2016to2017` = replace_na(`2017` - `2016`, 0),
+    `2015to2016` = replace_na(`2016` - `2015`, 0),
+    `2014to2015` = replace_na(`2015` - `2014`, 0),
+    `2013to2014` = replace_na(`2014` - `2013`, 0),
+    `2012to2013` = replace_na(`2013` - `2012`, 0),
+    total_variation = 
+           abs(`2019to2020`) + 
+           abs(`2018to2019`) +
+           abs(`2017to2018`) +
+           abs(`2016to2017`) +
+           abs(`2015to2016`) +
+           abs(`2014to2015`) +
+           abs(`2013to2014`) +
+           abs(`2012to2013`), 
+    net_variation_2012to2020 = `2019to2020` + `2018to2019` +
+                    `2017to2018` + `2016to2017` +
+                    `2015to2016` + `2014to2015` +
+                    `2013to2014` + `2012to2013`) %>%
+  arrange(desc(total_variation))
+
+rank_over_time %>%
+  ggplot(aes(x = city, y = total_variation)) +
+    geom_col() +
+    coord_flip()
+```
+
+![](parks_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+``` r
+rank_over_time %>%
+  top_n(10, wt = total_variation) %>%
+  gather(key = "years", value = "rank_change", `2019to2020`:`2012to2013`) %>%
+  select(city, years, rank_change, total_variation) %>%
+  ggplot(aes(x = years, y = rank_change, group = city)) +
+    geom_point() +
+    geom_line(aes(color = city))
+```
+
+![](parks_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
+
+``` r
+rank_over_time %>%
+  top_n(-10, wt = total_variation) %>%
+  gather(key = "years", value = "rank_change", `2019to2020`:`2012to2013`) %>%
+  select(city, years, rank_change, total_variation) %>%
+  ggplot(aes(x = years, y = rank_change, group = city)) +
+    geom_point() +
+    geom_line(aes(color = city))
+```
+
+![](parks_files/figure-gfm/unnamed-chunk-6-3.png)<!-- -->
+
+``` r
+rank_over_time %>%
+  top_n(10, net_variation_2012to2020) %>%
+  arrange(desc(net_variation_2012to2020)) %>%
+  select(city, net_variation_2012to2020)
+```
+
+    ## # A tibble: 11 x 2
+    ##    city           net_variation_2012to2020
+    ##    <fct>                             <dbl>
+    ##  1 Fort Worth                           70
+    ##  2 Oklahoma City                        64
+    ##  3 Indianapolis                         62
+    ##  4 Mesa                                 60
+    ##  5 Charlotte                            58
+    ##  6 Memphis                              57
+    ##  7 Tucson                               53
+    ##  8 Fresno                               52
+    ##  9 Detroit                              51
+    ## 10 Houston                              48
+    ## 11 Corpus Christi                       48
+
+``` r
+rank_over_time %>%
+  top_n(10, net_variation_2012to2020) %>%
+  gather(key = "years", value = "rank_change", `2019to2020`:`2012to2013`) %>%
+  select(city, years, rank_change, total_variation, net_variation_2012to2020) %>%
+  arrange(desc(net_variation_2012to2020)) %>%
+  ggplot(aes(x = years, y = rank_change, group = city)) +
+    geom_point() +
+    geom_line(aes(color = city))
+```
+
+![](parks_files/figure-gfm/unnamed-chunk-6-4.png)<!-- -->
+
+``` r
+rank_over_time %>%
+  top_n(-10, net_variation_2012to2020) %>%
+  gather(key = "years", value = "rank_change", `2019to2020`:`2012to2013`) %>%
+  select(city, years, rank_change, total_variation, net_variation_2012to2020) %>%
+  arrange(desc(net_variation_2012to2020)) %>%
+  ggplot(aes(x = years, y = rank_change, group = city)) +
+    geom_point() +
+    geom_line(aes(color = city))
+```
+
+![](parks_files/figure-gfm/unnamed-chunk-6-5.png)<!-- -->
+
 # References
 
 <div id="refs" class="references csl-bib-body hanging-indent">
