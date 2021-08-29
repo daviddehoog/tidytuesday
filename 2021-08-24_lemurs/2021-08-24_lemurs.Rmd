@@ -151,12 +151,70 @@ clean_lemurs %>%
 ```
 
 ```{r}
+top10_lemurs <- lemurs %>%
+  group_by(dlc_id) %>%
+  summarize(total_obs = n()) %>%
+  arrange(desc(total_obs)) %>%
+  slice_head(n = 10) %>%
+  pull(dlc_id)
+
 lemurs %>%
-  filter(dlc_id == 3621) %>%
-  select(name, weight_date, weight_g, age_at_wt_y) %>%
-  ggplot(aes(x = weight_date, y = weight_g)) +
-    geom_point() +
+  filter(dlc_id %in% top10_lemurs) %>%
+  group_by(dlc_id) %>%
+  select(name, weight_date, weight_g, age_at_wt_y, sex, birth_type) %>%
+  ggplot(aes(x = weight_date, y = weight_g, color = birth_type)) +
+    geom_point(size = 0.5) +
     geom_line() +
+    facet_wrap(~name)
+
+
+lemurs %>%
+  ggplot(aes(x = weight_g)) +
+    geom_boxplot()
+
+lemurs %>%
+  arrange(desc(weight_g)) %>% 
+  slice_head(n = 1000) %>%
+  distinct(dlc_id, name, .keep_all = TRUE) %>%
+  select(name, weight_date, weight_g, taxon) %>%
+  inner_join(taxonomy, by = c("taxon"))
+```
+```{r}
+
+# Plot of the number of births and deaths in each year, with trend line.
+births_by_year <- lemurs %>%
+  filter(!is.na(dob) & birth_type == "CB") %>%
+  select(dob) %>%
+  mutate(dob_year = year(dob)) %>%
+  group_by(dob_year) %>%
+  count(name = "births")
+  
+deaths_by_year <- lemurs %>%
+  filter(!is.na(dod) & birth_type == "CB") %>%
+  select(dod) %>%
+  mutate(dod_year = year(dod)) %>%
+  group_by(dod_year) %>%
+  count(name = "deaths")
+
+net_change <- births_by_year %>% 
+  full_join(deaths_by_year, by = c("dob_year" = "dod_year")) %>%
+  filter(births + deaths > 50) %>% 
+  rename(year = dob_year) %>%
+  filter(year < 2018) %>% 
+  mutate(deaths = deaths * -1, net_change = (births + deaths))
+
+trans_dat <- net_change %>% 
+  pivot_longer(births:deaths, names_to = "observation", values_to = "values") %>% 
+  select(-net_change)
+
+p1 <- ggplot(data = trans_dat, aes(x = year, y = values, fill = observation)) +
+        geom_col()
+
+p1 + 
+  geom_line(data = net_change, aes(x = year, y = net_change), color = "black", inherit.aes = FALSE) +
+  geom_smooth(data = net_change, method = lm, se = FALSE, aes(x = year, y = net_change), color = "red", inherit.aes = FALSE)
+
+
 
 ```
 
