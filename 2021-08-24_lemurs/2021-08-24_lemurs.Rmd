@@ -1,0 +1,164 @@
+---
+title: "2021-08-24_lemurs"
+author: "DdH"
+date: "24/08/2021"
+output:
+  github_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+    self_contained: false
+bibliography: ["../tidytuesday.bib"]
+nocite: '@*'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+theme_set(theme_classic())
+```
+
+```{r get_data}
+lemurs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-08-24/lemur_data.csv', show_col_types = FALSE)
+taxonomy <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-08-24/taxonomy.csv', show_col_types = FALSE)
+```
+
+# Exploratory data analysis
+
+There are `r lemurs %>% count(dlc_id) %>% count()` unique lemurs in this dataset, with a total of `r lemurs %>% count()` observations.
+
+```{r}
+lemurs %>%
+  group_by(dlc_id) %>%
+  filter(!is.na(dob)) %>%
+  ggplot(aes(x = dob)) +
+    geom_boxplot()
+
+lemurs %>%
+  group_by(dlc_id) %>%
+  filter(!is.na(dob)) %>%
+  ggplot(aes(x = birth_month)) +
+    geom_bar()
+```
+## How many births of each type each year over time?
+
+```{r}
+lemurs %>%
+  mutate(year = lubridate::year(dob)) %>%
+  filter(year != 1946 & !is.na(year) == TRUE) %>%
+  group_by(dlc_id, birth_type, year) %>%
+  summarise(total_lemurs = n_distinct(dlc_id)) %>%
+  group_by(birth_type, year) %>%
+  summarize(births = n()) %>%
+  arrange(births) %>%
+  ggplot(aes(x = year, y = births, fill = birth_type)) +
+    geom_col()
+
+```
+## Percentage of birth types over time?
+```{r}
+lemurs %>%
+  mutate(year = lubridate::year(dob)) %>%
+  filter(year != 1946 & !is.na(year) == TRUE) %>%
+  group_by(dlc_id, birth_type, year) %>%
+  summarise(total_lemurs = n_distinct(dlc_id)) %>%
+  group_by(birth_type, year) %>%
+  summarize(births = n()) %>%
+  arrange(births) %>%
+  ggplot(aes(x = year, y = births, fill = birth_type)) +
+    geom_col(position = "fill")
+```
+
+
+```{r}
+lemurs %>%
+  mutate(year = lubridate::year(dob)) %>%
+  filter(year != 1946 & !is.na(year) == TRUE) %>%
+  group_by(year) %>%
+  summarise(births_by_year = n()) %>%
+  arrange(year)
+
+```
+
+## What is the average life expectancy of a lemur ?
+```{r}
+ages_at_death <- lemurs %>%
+  filter(!is.na(dob) == TRUE & dob > '1950-01-01' & !is.na(dod) == TRUE & sex %in% c("M", "F")) %>%
+  mutate(age_at_death = as.duration(dod - dob)) %>%
+  select(dlc_id, name, dob, dod, age_at_death, sex, birth_institution) %>%
+  group_by(dlc_id, age_at_death, sex, birth_institution) %>%
+  summarise(total_lemurs = n_distinct(dlc_id)) %>%
+  filter(age_at_death != 0)
+
+ages_at_death
+```
+```{r}
+ages_at_death %>%
+  ggplot(aes(x = age_at_death)) +
+    geom_histogram()
+```
+
+
+```{r}
+ages_at_death %>%
+  ggplot(aes(x = age_at_death/31536000, group = sex)) +
+    geom_boxplot() +
+    scale_x_continuous() +
+    scale_y_discrete(breaks = c("male", "female")) +
+    labs(y = "sex", x = "age at death") +
+    coord_flip()
+
+```
+
+```{r}
+output <- ages_at_death %>%
+  group_by(total_lemurs) %>%
+  summarise(avg_life_expectancy = as.duration(mean(age_at_death))) %>%
+  select(avg_life_expectancy)
+
+as.duration(output$avg_life_expectancy)
+```
+
+```{r}
+clean_lemurs <- lemurs %>%
+  filter(!is.na(dob) == TRUE & dob > '1950-01-01' & !is.na(dod) == TRUE & sex %in% c("M", "F")) %>%
+  distinct(dlc_id, name, .keep_all = TRUE) %>%
+  mutate(age_at_death = as.duration(dod - dob), sex = as.factor(sex), birth_institution = as.factor(birth_institution), birth_type = as.factor(birth_type)) %>%
+  select(dlc_id, name, dob, dod, age_at_death, sex, birth_type, birth_institution)
+```
+
+```{r}
+clean_lemurs %>%
+  select(name, sex, age_at_death, birth_type) %>%
+  group_by(birth_type, sex) %>%
+  summarize(avg_age = round(mean(age_at_death/31536000), 2)) %>%
+  ggplot(aes(x = birth_type, y = avg_age, color = sex)) +
+    geom_col(position = "dodge")
+```
+```{r}
+clean_lemurs %>%
+  select(name, sex, age_at_death) %>%
+  ggplot(aes(x = sex, y = age_at_death/31536000)) +
+    geom_boxplot() +
+    scale_y_continuous() +
+    labs(x = "sex", y = "age at death")
+```
+
+```{r}
+clean_lemurs %>%
+  select(name, sex, age_at_death)
+```
+
+```{r}
+lemurs %>%
+  filter(dlc_id == 3621) %>%
+  select(name, weight_date, weight_g, age_at_wt_y) %>%
+  ggplot(aes(x = weight_date, y = weight_g)) +
+    geom_point() +
+    geom_line() +
+
+```
+
+
+# References
