@@ -1,0 +1,195 @@
+---
+title: "Tidy Tuesday Animal Rescues"
+output:
+  github_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+    self_contained: false
+bibliography: ["../tidytuesday.bib"]
+nocite: '@*'
+---
+
+# Setup
+
+```{r}
+library(tidytuesdayR)
+tuesdata <- tt_load('2021-06-29')
+animal_rescues <- tuesdata$animal_rescues
+
+library(tidyverse)
+library(magrittr)
+library(sf)
+library(osmdata)
+library(tmap)
+library(tmaptools)
+
+theme_set(theme_minimal())
+
+```
+
+# EDA
+## Objective: Make a nice plot in under two hours from an unfamiliar dataset.
+
+## Approach one - using borough name
+
+```{r}
+
+# Clean data and create spatial object from point information
+tidy_animal_rescues <- animal_rescues %>% 
+  filter(incident_notional_cost != "NULL") %>% 
+  mutate(
+    stn_ground_name = parse_factor(stn_ground_name), # make factor
+    ward = parse_factor(ward),
+    date_time_of_call = dmy_hms(date_time_of_call),
+    animal = parse_factor(animal_group_parent),
+    incident_notional_cost = parse_number(incident_notional_cost),
+    pump_hours_total = parse_number(pump_hours_total)
+  ) %>% 
+  filter(borough == "Tower Hamlets") %>% 
+  st_as_sf(coords = c("easting_rounded", "northing_rounded"), crs = 27700)
+
+```
+
+```{r}
+
+# Get outline of Tower Hamlets
+tower_hamlets_map <- getbb("London Borough of Tower Hamlets") %>% 
+  opq(timeout = 25*100) %>% 
+  add_osm_feature(
+    key = "admin_level", 
+    value = "8"
+  ) %>%
+  osmdata_sf() %$% 
+  osm_multipolygons %>% 
+  filter(name == "London Borough of Tower Hamlets") %>% 
+  st_transform(27700)
+
+```
+
+## Simple figure
+
+```{r}
+
+tidy_animal_rescues %>% 
+  select(animal, final_description, street, ward, geometry) %>%
+  ggplot() +
+    geom_sf(data = tower_hamlets_map) +
+    geom_sf(data = tidy_animal_rescues, aes(color = fct_infreq(animal), size = incident_notional_cost))
+
+```
+
+
+
+```{r}
+
+tower_hamlet_roads <- getbb("London Borough of Tower Hamlets") %>% 
+  opq(timeout = 25*100) %>% 
+  add_osm_feature(
+    key = "highway", 
+    value = c("trunk","primary", "secondary", "tertiary")
+  ) %>%
+  osmdata_sf() %$% 
+  osm_lines %>%
+  st_transform(27700) %>%
+  st_intersection(tower_hamlets_map)
+
+```
+
+```{r}
+
+tower_hamlets_water <- getbb("London Borough of Tower Hamlets") %>% 
+  opq(timeout = 25*100) %>% 
+  add_osm_feature(
+    key = "natural", 
+    value = "water"
+  ) %>%
+  osmdata_sf() %$% 
+  osm_multipolygons %>% 
+#  filter(name == "London Borough of Tower Hamlets") %>% 
+  st_transform(27700) %>% 
+  st_intersection(tower_hamlets_map)
+```
+
+
+
+```{r}
+
+tidy_animal_rescues %>% 
+  select(animal, final_description, street, ward, geometry) %>%
+  ggplot() +
+    geom_sf(data = tower_hamlets_map, fill = NA) +
+    geom_sf(data = tower_hamlet_roads, fill = "grey") +
+    geom_sf(data = tower_hamlets_water, fill = "lightblue") +
+    geom_sf(data = tidy_animal_rescues, aes(color = fct_infreq(animal), size = incident_notional_cost))
+
+```
+
+```{r}
+
+st_crs(tower_hamlets_map$geometry)
+st_crs(tidy_animal_rescues$geometry)
+
+```
+
+
+```{r}
+tidy_animal_rescues %>% 
+  filter(animal == "Deer")
+```
+
+
+## Aproach two - using geocoded information
+
+
+
+## Approach three - a network analysis of the stations and jobs
+
+### Get broader Tower Hamlets
+
+```{r}
+
+tower_hamlets_map_wide <- getbb("London Borough of Tower Hamlets") %>% 
+  opq(timeout = 25*100) %>% 
+  add_osm_feature(
+    key = "admin_level", 
+    value = "8"
+  ) %>%
+  osmdata_sf() %$% 
+  osm_multipolygons %>%
+  st_transform(27700) %>% 
+  ggplot() +
+    geom_sf(data = .)
+
+```
+
+### Get fire station locations
+
+```{r}
+fire_stations <- tidy_animal_rescues %>% 
+  st_drop_geometry() %>% 
+  distinct(stn_ground_name) %>% 
+  mutate(stn_ground_name = str_c(stn_ground_name, " Fire Station")) %>% 
+  pull() %>% 
+  geocode_OSM(geometry = "point", as.sf = TRUE, details = FALSE) %>% 
+  st_transform(27700)
+
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = tower_hamlets_map, fill = NA) +
+  geom_sf(data = tower_hamlet_roads, alpha = 0.3) +
+  geom_sf(data = fire_stations, color = "black", size = 3, shape = 24) +
+  geom_sf(data = tidy_animal_rescues, aes(colour = stn_ground_name, size = pump_hours_total), alpha = 0.6) +
+  labs(title = "Animal Rescues in London Borough of Tower Hamlets") +
+  scale_y_continuous(breaks = 51.50) +
+  scale_x_continuous(breaks = 0) +
+  theme(
+      panel.grid.major = element_line(color = "gray", size = 0.1)
+  )
+```
+
+# References
+
+https://data.london.gov.uk/download/statistical-gis-boundary-files-london/9ba8c833-6370-4b11-abdc-314aa020d5e0/statistical-gis-boundaries-london.zip 
