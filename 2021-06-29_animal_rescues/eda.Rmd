@@ -1,18 +1,18 @@
 ---
 title: "Tidy Tuesday Animal Rescues"
 output:
-  github_document: default
-  html_notebook: default
   html_document:
     df_print: paged
     self_contained: false
+  github_document: default
+  html_notebook: default
 bibliography: ["../tidytuesday.bib"]
 nocite: '@*'
 ---
 
 # Setup
 
-```{r}
+```{r echo = FALSE}
 library(tidytuesdayR)
 tuesdata <- tt_load('2021-06-29')
 animal_rescues <- tuesdata$animal_rescues
@@ -23,6 +23,8 @@ library(sf)
 library(osmdata)
 library(tmap)
 library(tmaptools)
+library(lubridate)
+library(magrittr)
 
 theme_set(theme_minimal())
 
@@ -71,12 +73,13 @@ tower_hamlets_map <- getbb("London Borough of Tower Hamlets") %>%
 
 ```{r}
 
+png("test.png")
 tidy_animal_rescues %>% 
   select(animal, final_description, street, ward, geometry) %>%
   ggplot() +
     geom_sf(data = tower_hamlets_map) +
     geom_sf(data = tidy_animal_rescues, aes(color = fct_infreq(animal), size = incident_notional_cost))
-
+  dev.off()
 ```
 
 
@@ -141,10 +144,6 @@ tidy_animal_rescues %>%
 
 ## Aproach two - using geocoded information
 
-
-
-## Approach three - a network analysis of the stations and jobs
-
 ### Get broader Tower Hamlets
 
 ```{r}
@@ -189,6 +188,9 @@ ggplot() +
       panel.grid.major = element_line(color = "gray", size = 0.1)
   )
 ```
+
+## Approach three - a network analysis of the stations and jobs
+
 
 # References
 
