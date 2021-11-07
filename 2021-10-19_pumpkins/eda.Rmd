@@ -1,0 +1,146 @@
+---
+title: "Tidy Tuesday "
+output:
+  html_document:
+    df_print: paged
+    self_contained: false
+  github_document: default
+  html_notebook: default
+bibliography: ["../tidytuesday.bib"]
+nocite: '@*'
+---
+
+# 
+
+```{r setup, echo = FALSE}
+library(tidytuesdayR)
+library(tidyverse)
+tuesdata <- tidytuesdayR::tt_load('2021-10-19')
+pumpkins <- tuesdata$pumpkins
+theme_set(theme_minimal())
+```
+
+# Data cleaning
+
+```{r cleaning}
+pumpkins_clean <- pumpkins %>% 
+  filter(!grepl('damaged)', place)) %>% # remove dirty, broken rows
+  separate(id, into = c("year", "type"), sep = "-") %>% # Split out id into more useful variables 
+  mutate(weight_lbs = as.double(weight_lbs), weight_kgs = weight_lbs * 0.45359237, type = as.factor(type), place = as.numeric(place)) %>% 
+  filter(!is.na(weight_lbs == TRUE) & !is.na(place == TRUE))
+```
+
+
+# EDA
+## How many pumpkins per country>
+```{r}
+pumpkins_clean %>% 
+  count(country, sort = TRUE)
+```
+So, looks like there are a whole lot of damaged entries in the data. We're talking about less than 50 rows, out of 28,065, so let's filter them out.
+
+```{r}
+pumpkins_clean %>% 
+  filter(!grepl('damaged)', place))
+```
+
+## How many pumpkins of each type, average weight and range of weights?
+
+```{r}
+pumpkins_clean %>% 
+  filter(type %in% c("F", "P", "S", "W", "L")) %>% 
+  group_by(type) %>% 
+  summarise(total = n(), avg_weight = mean(weight_lbs), min = min(weight_lbs), max = max(weight_lbs)) 
+```
+
+## What do the pumpkins looks like over time?
+
+```{r}
+pumpkins_clean %>% 
+  group_by(year) %>% 
+  summarise(total = n(), avg_weight = mean(weight_lbs), min = min(weight_lbs), max = max(weight_lbs)) 
+```
+
+# Plot the distribution of pumpkin weights, by type, over years
+
+```{r}
+pumpkins_clean %>% 
+  filter(type != "T") %>% 
+  group_by(year, type) %>% 
+  select(year, type, weight_kgs) %>% 
+  ggplot(aes(x = year, y = weight_kgs)) +
+    geom_boxplot() +
+    facet_wrap(~ type)
+
+```
+# Concentrate this view on the largest three of two types per year
+
+```{r}
+pumpkins_clean %>% 
+  filter(place %in% c(1:10)) %>% 
+  group_by(year, type) %>% 
+  select(year, type, weight_kgs) %>% 
+  ggplot(aes(x = year, y = weight_kgs)) +
+    geom_boxplot() +
+    facet_wrap(~ type)
+```
+
+
+## Find the grower with the most entries, and visualise over time
+
+```{r}
+pumpkins_clean %>% 
+#  count(grower_name, sort = TRUE)
+  filter(grower_name == "Risi, Robert") %>% 
+  group_by(year, type) %>% 
+  ggplot(aes(x = year, y = weight_kgs)) +
+    geom_point() +
+    facet_wrap(~ type)
+```
+
+# What about a network graph of the seed parents ..?
+
+```{r}
+pumpkins %>% 
+  filter(!grepl('damaged)', place)) %>% # remove dirty, broken rows
+  separate(id, into = c("year", "type"), sep = "-") %>%
+  count(seed_mother, sort = TRUE)
+```
+
+
+```{r}
+network_pumpkins <- pumpkins %>% 
+  filter(!grepl('damaged)', place)) %>% # remove dirty, broken rows
+  separate(id, into = c("year", "type"), sep = "-") %>%
+  mutate(seed_mother = recode(seed_mother, 
+                              Unknown = "unknown",
+                              unknow = "unknown", 
+                              'N/A' = "unknown",
+                              'n/a' = "unknown",
+                              Unkown = "unknown",
+                              Unknow = "unknown",
+                              UNKNOWN = "unknown",
+                              '?' = "unknown",
+                              Open = "open"),
+        weight_lbs = as.double(weight_lbs),
+        weight_kgs = weight_lbs * 0.45359237,              
+    ) %>% 
+  mutate(seed_mother = na_if(seed_mother, "unknown")) %>% 
+  drop_na(seed_mother) %>%
+  mutate(seed_mother = str_replace(seed_mother, "^\\S* ", "")) %>% 
+  filter(!is.na(weight_lbs == TRUE)) %>% 
+  group_by(type, year) %>% 
+  summarize(total = n(), avg_weight_kg = mean(weight_kgs))
+  #count(seed_mother, sort = TRUE)
+  
+```
+
+
+
+# References
+
+```{r clean_up}
+rm(tuesdata, pumpkins)
+
+```
+

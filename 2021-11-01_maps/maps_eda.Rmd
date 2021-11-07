@@ -1,0 +1,64 @@
+---
+title: "Testing mapping in R"
+output:
+  github_document: default
+  html_document:
+    df_print: paged
+    self_contained: false
+  html_notebook: default
+nocite: '@*'
+---
+
+```{r setup, echo = FALSE}
+library(sf)
+library(tidyverse)
+library(tmap)
+library(spData)
+#library(spDataLarge)
+```
+
+
+```{r map}
+
+# TO DO: Re-work intersection using tidyverse approach (eg. filter(st_intersects(x, y, sparse = FALSE)) etc.)
+
+# project the london coordinates
+lnd_proj <- lnd %>% 
+  st_transform(crs = st_crs(27700))
+
+# create a greater london centroid, then create a 10 km buffer
+lnd_buffer <- lnd_proj %>% 
+  filter(NAME == "City of London") %>% 
+  st_centroid() %>% 
+  st_buffer(dist = 9900)
+
+# match the boroughs within the 10km buffer
+lnd_boroughs_int <- lnd_proj %>% 
+  st_intersects(., lnd_buffer, sparse = FALSE)[c('NAME', 'ONS_INNER'),] # Re-work to use tudyverse approach
+
+# choose the inner london boroughs # can probable be done with grouping in tmap_*
+inner_boroughs <- lnd_boroughs_int %>% 
+  filter(ONS_INNER == "T")
+
+outer_boroughs <- lnd_boroughs_int %>% 
+  filter(ONS_INNER == "F")
+
+# map all of greater london as a base
+tm_shape(lnd_proj) +
+  tm_borders() +
+  tm_fill(col = "grey", alpha = 0.5) +
+# add the boroughs inside the region, with a colour
+  tm_shape(outer_boroughs) +
+    tm_fill(col = "lightblue", alpha = 0.8) +
+    tm_borders(col = "black") +
+  tm_shape(inner_boroughs) +
+    tm_fill(col = "purple", alpha = 0.5) +
+    tm_borders(col = "black") +
+# add the buffer as a ring
+  tm_shape(lnd_buffer) +
+    tm_borders(col = "red") +
+    tm_fill(alpha = 0)
+
+```
+
+
