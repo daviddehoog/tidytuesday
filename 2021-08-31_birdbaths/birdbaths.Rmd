@@ -1,0 +1,108 @@
+---
+title: "Tidy Tuesday - Bird Baths (2021-08-31)"
+date: "27 November 2021"
+output:
+  github_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+    self_contained: false
+bibliography: ["../tidytuesday.bib"]
+nocite: '@*'
+---
+
+```{r setup, include = FALSE}
+library(tidytuesdayR)
+library(tidyverse)
+tuesdata <- tidytuesdayR::tt_load('2021-08-31')
+bird_baths <- tuesdata$bird_baths
+library(sf)
+regions_shp <- st_read("data/IBRA7_regions/ibra7_regions.shp")
+library(tmap)
+library(rmapshaper)
+library(DBI)
+con <- DBI::dbConnect(odbc::odbc(), Driver = "PostgreSQL Driver", 
+     database = "dadehoog")
+```
+
+```{r}
+query <- "SELECT ste_name21,ste_code21,ST_GeomFROMWKB(wkb_geometry) AS geom FROM ste_2021_aust_gda2020"
+abs_st_gsa2020 <- st_read(con, query = query)
+
+study_area <- abs_st_gsa2020 %>% 
+  filter(ste_code21 %in% c(1,2,3,6,8)) %>% 
+  st_transform(3577) %>% 
+  st_make_valid() %>% 
+  rmapshaper::ms_simplify(keep = 0.1, keep_shapes = TRUE)
+plot(study_area$geom)
+
+str(study_area)
+
+regions_shp_valid <- regions_shp %>%
+  janitor::clean_names() %>% 
+  st_transform(3577) %>% 
+  st_make_valid() %>% 
+  rmapshaper::ms_simplify(keep = 0.1, keep_shapes = TRUE) %>%
+  dplyr::select(reg_code_7,reg_name_7,sq_km, geometry)
+  #dplyr::filter(feat_id != "External_Islands_various_sources") %>% 
+plot(regions_shp_valid$geometry)
+
+# subset the regions_shp with the study area
+the_subset <- regions_shp_valid[study_area, ]
+plot(the_subset$geometry)
+
+# How do I do this with tidyverse? Isn't this right?
+try_subset <- regions_shp_valid %>% 
+  dplyr::filter(st_overlaps(x = ., y = study_area, sparse = FALSE))
+plot(try_subset$geometry)
+
+```
+
+```{r clean}
+bird_baths_clean <- bird_baths %>% 
+  filter(is.na(survey_year) == FALSE) # Remove observations with no temporal information
+
+bird_baths_grouped_2014 <- bird_baths_clean %>% 
+  group_by(bioregions) %>% 
+  filter(survey_year == 2014) %>% 
+  summarize(bird_species = sum(bird_count))
+
+bird_baths_grouped_2015 <- bird_baths_clean %>% 
+  group_by(bioregions) %>% 
+  filter(survey_year == 2015) %>% 
+  summarize(bird_species = sum(bird_count))
+
+```
+
+
+```{r eda}
+
+the_subset %>% 
+  left_join(bird_baths_grouped_2014, by = c("reg_name_7" = "bioregions")) %>% 
+  ggplot() +
+    geom_sf(aes(fill = bird_species))
+
+the_subset %>% 
+  left_join(bird_baths_grouped_2015, by = c("reg_name_7" = "bioregions")) %>% 
+  ggplot() +
+    geom_sf(aes(fill = bird_species))
+```
+
+
+```{r}
+bird_baths_clean %>% 
+  group_by(bioregions, urban_rural) %>% 
+  count(bioregions, sort = TRUE) 
+
+bird_baths_clean %>% 
+  count(bird_type)
+
+test <- bird_baths_clean %>% 
+  filter(str_detect(bird_type, "Cockatoo") == TRUE & bird_count != 0) %>% 
+  group_by(bioregions) %>% 
+  inner_join(regions_shp, by = c("bioregions" = "reg_name_7")) %>% 
+  st_as_sf()
+
+
+```
+

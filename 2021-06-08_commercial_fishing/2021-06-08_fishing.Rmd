@@ -112,6 +112,44 @@ fishing_raw %>%
     facet_wrap(~ species)
 ```
 
+# Where fish have been stocked
+
+```{r}
+
+# Doesn't work ... weirdness with ggmap package and vectors
+
+library(sf)
+library(ggmap)
+
+stocked_raw %>% 
+  filter(!is.na(LONGITUDE) == TRUE & !is.na(LATITUDE) == TRUE) %>% 
+  filter(LONGITUDE <= -50 & LATITUDE >= 40) %>% 
+  st_as_sf(coords = c("LONGITUDE","LATITUDE"), crs = 4326) %>% 
+  st_transform(., crs = 3857) -> stocked_geo
+
+bbox <- st_bbox(stocked_geo)
+
+base_layer <- get_stamenmap(
+  bbox = c(
+    left = bbox$xmin[[1]],
+    bottom = bbox$ymin[[1]], 
+    right = bbox$xmax[[1]], 
+    top = bbox$ymax[[1]]
+    ),
+  maptype  = "terrain",
+  zoom = 15
+)
+
+stocked_plot <- stocked_geo %>% 
+  mutate(DATE = make_date(YEAR, MONTH, DAY)) %>%
+  dplyr::select(DATE, LAKE, SPECIES, NO_STOCKED)
+
+ggmap(base_layer) +
+  #  geom_raster(aes(base_layer)) +
+    geom_sf(data = stocked_plot, aes(size = NO_STOCKED, color = SPECIES))
+
+```
+
 
 
 # References

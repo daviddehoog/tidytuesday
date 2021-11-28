@@ -1,0 +1,84 @@
+---
+title: "Tidy Tuesday - Africa Mapping (2021-11-09)"
+date: "15 November 2021"
+output:
+  github_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+    self_contained: false
+bibliography: ["../tidytuesday.bib"]
+nocite: '@*'
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+remotes::install_github("afrimapr/afrilearndata")
+library(afrilearndata)
+remotes::install_github("afrimapr/afrihealthsites")
+library(afrihealthsites)
+library(tmap)
+```
+
+# An overview map of the African continent with country capitals
+
+```{r}
+tm_shape(africountries) +
+  tm_borders(col = "grey") +
+  tm_fill() +
+  tm_shape(africapitals) +
+    tm_dots(col = "red", size = "pop") +
+    tm_text("capitalname") +
+  tm_layout(
+    title = "Africa",
+    bg.color = "lightblue"
+  )
+
+```
+
+# Zooming in on Nigeria
+
+```{r}
+
+nigeria <- africountries %>% 
+  filter(iso_a3 == "NGA")
+
+abuja <- africapitals %>% 
+  filter(iso3c == "NGA")
+
+highways <- afrihighway %>% 
+  filter(st_intersects(x = ., y = nigeria, sparse = FALSE))
+  
+tm_shape(nigeria) +
+  tm_polygons(col = "white") +
+  tm_borders(col = "black") +
+  tm_shape(abuja) +
+    tm_dots(col = "red", size = 1) +
+    tm_text("capitalname") +
+  tm_shape(highways) +
+    tm_lines(col = "blue") +
+  tm_layout(
+    title = "Nigera",
+    bg.color = "grey"
+  )
+
+```
+
+# Nigeria with a bounding box approach
+
+```{r}
+bb <- st_bbox(nigeria)
+bbox <- st_as_sfc(bb)
+bb_highways <- afrihighway %>% 
+  filter(st_intersects(x = ., y = bbox, sparse = FALSE))
+
+tm_shape(bbox) +
+  tm_polygons() +
+  tm_shape(bb_highways) +
+    tm_lines() +
+  tm_shape(nigeria) +
+    tm_polygons(col = "darkblue", alpha = 0.5)
+  
+```
+
+
