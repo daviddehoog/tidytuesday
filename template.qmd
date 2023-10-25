@@ -1,0 +1,62 @@
+---
+title: "Tidy Tuesday - "
+author: "David de Hoog"
+date: ""
+format: gfm
+editor: visual
+bibliography: "tidytuesday.bib"
+---
+
+```{r}
+#| label: setup-env
+#| message: false
+
+library(tidytuesdayR)
+library(tidyverse)
+
+```
+
+### Data
+
+This week's dataset is about ....
+
+```{r}
+#| label: setup-data
+#| cache: true
+#| message: false
+
+#tuesdata <- tidytuesdayR::tt_load('')
+
+
+```
+
+About the data files ...
+
+### Exploring
+
+```{r}
+#| label: eda-
+
+```
+
+### Visualising
+
+```{r}
+#| label: vis-
+#| fig-cap: ""
+#| fig-alt: ""
+
+```
+
+## Appendices
+
+### Session Info
+
+```{r}
+#| label: app-session-info
+
+sessionInfo()
+
+```
+
+### References
