@@ -3,8 +3,9 @@ title: "Tidy Tuesday - "
 author: "David de Hoog"
 date: ""
 format: gfm
-editor: visual
-bibliography: "tidytuesday.bib"
+bibliography: "../tidytuesday.bib"
+execute:
+  cache: false
 ---
 
 ```{r}
