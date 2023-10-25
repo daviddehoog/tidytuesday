@@ -3,7 +3,9 @@ title: "Tidy Tuesday - Patient Risk Profiles (2023, Week 44)"
 author: "David de Hoog"
 date: "2023-10-22"
 format: gfm
-bibliography: "tidytuesday.bib"
+bibliography: "../tidytuesday.bib"
+execute:
+  cache: false
 ---
 
 ### Data and setup
