@@ -1,0 +1,141 @@
+---
+title: "Tidy Tuesday - "
+author: "David de Hoog"
+date: ""
+format: gfm
+bibliography: "../tidytuesday.bib"
+execute:
+  cache: false
+---
+
+```{r}
+#| label: setup-env
+#| message: false
+
+library(tidytuesdayR)
+library(tidyverse)
+library(scales)
+library(ggtext)
+
+tuesdata <- tidytuesdayR::tt_load('2023-11-07')
+house <- tuesdata$house
+
+```
+
+### Data
+
+This week's dataset is House of Representatives elections in the United States from 1976 - 2022.
+
+```{r}
+#| label: eda-view
+
+glimpse(house)
+
+```
+
+Unlike the United States (and many other places) Australia has compulsory voting in elections. In House of Representatives elections in Australia we use a preferential voting system, so once all the preferences are distributed the final result is a two-candidate preferred one. For example, in a safe seat, the winning candidate might secure 41 per cent of the primary vote, and once preferences are distributed and all but one other candidate is eliminated, the winner might secure 58 per cent of the total votes.
+
+I'm interested in how many votes (as a proportion) it takes to win a seat in the US House of Representatives and how that might have changed over time.
+
+```{r}
+#| label: eda-clean
+
+# Find the winning candidate in each election
+# To start, make it a bit more manageable with only one state (Illinois, as the state that hosted this year's PositConf) and the general election stage (so omit the primaries).
+
+house |>
+  filter(
+    state == "ILLINOIS" & 
+    stage == "GEN" &
+    is.na(party) != TRUE &
+    party != "WRITE-IN" # &
+    #special == FALSE &
+    #runoff == FALSE
+    ) |>
+  mutate(
+    party = as.factor(party),
+    party = fct_lump_n(party, 2, other_level = "Other"),
+    party = fct_recode(party, 
+                       "Republican" = "REPUBLICAN",
+                       "Democrat" = "DEMOCRAT")
+    ) |>
+  group_by(year, district, party) |>
+  mutate(pct_vote = candidatevotes / totalvotes) |>
+  select(year, state, district, party, candidatevotes, totalvotes, pct_vote) -> house_vis
+
+```
+
+```{r}
+
+house_vis |>
+  filter(year == 1980) |>
+  summarize(mean_pct_vote = mean(pct_vote) * 100)
+
+
+```
+
+
+### Visualising
+
+```{r}
+#| label: vis-plot
+#| fig-cap: "Republican and Democrat votes in House General Elections (Illinois: 1976 - 2022)"
+#| fig-alt: ""
+
+# Set up colour palette; # republican = red, democrat = blue, others = grey
+party_palette <- c("blue", "red", "grey") 
+
+# Averaging up districts to state level
+house_vis |>
+  group_by(year, party) |>
+  summarize(.groups = "keep", mean_pct_vote = mean(pct_vote) * 100) |>
+  ggplot(aes(x = year, y = mean_pct_vote, color = party)) +
+    scale_colour_manual(values = party_palette) +
+    geom_point() +
+    geom_line() +
+    geom_hline(yintercept = 50, linetype = "dotted") +
+    labs(title = "<span style='color:red'>Republican</span> and <span style='color:blue'>Democrat</span> votes in House General Elections (Illinois: 1976 - 2022)") + 
+    theme(
+      axis.ticks = element_blank(),
+      axis.text.x = element_text(angle = 45, vjust = 0.5),
+      plot.title = element_markdown(),
+      legend.position = "none"
+    ) +
+    scale_x_continuous(
+      name = NULL,
+      breaks = seq(1976, 2022, 4),
+      labels = seq(1976, 2022, 4),
+      minor_breaks = seq(1976, 2022, 2)
+    ) +
+    scale_y_continuous(
+      name = NULL,
+      breaks = seq(0, 60, 10),
+      labels = label_percent(scale = 1),
+      minor_breaks = NULL
+    )
+
+```
+
+```{r}
+#| label: clean-up
+
+rm(tuesdata)
+rm(house)
+rm(house_vis)
+rm(party_palette)
+
+```
+
+
+### References
+
+@data{DVN/IG0UN2_2017,
+author = {MIT Election Data and Science Lab},
+publisher = {Harvard Dataverse},
+title = {{U.S. House 1976–2022}},
+UNF = {UNF:6:A6RSZvlhh8eRZ4+mvT/HRQ==},
+year = {2017},
+version = {V12},
+doi = {10.7910/DVN/IG0UN2},
+url = {https://doi.org/10.7910/DVN/IG0UN2}
+}
