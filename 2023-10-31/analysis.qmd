@@ -1,0 +1,88 @@
+---
+title: "Tidy Tuesday - Horror Legends (2023, Week 45)"
+author: "David de Hoog"
+date: "2023-10-31"
+format: gfm
+bibliography: "../tidytuesday.bib"
+execute:
+  cache: false
+---
+
+## 
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(tidytuesdayR)
+library(ggwaffle)
+
+```
+
+Brought to you by:
+
+<https://rud.is/rpubs/building-waffle-charts.html>
+
+```{r}
+#| label: get-data
+
+tuesdata <- tidytuesdayR::tt_load('2023-10-31')
+horror_articles <- tuesdata$horror_articles
+
+```
+
+```{r}
+#| label: data-prep
+
+horror_articles |>
+  mutate(
+    rating = as.factor(rating),
+    rating = fct_recode(rating,
+      "false" = "legend",
+      "mixture" = "partly true",
+      "mixture" = "mostly false",
+      "mixture" = "miscaptioned",
+      "undetermined" = "probably false",
+      "undetermined" = "unproven",
+      "false" = "was true; now outdated"
+      ),
+    year = year(published)) |>
+  filter(author != "Snopes Staff") -> horror_plot # |>
+  #group_by(year, rating, author) |>
+  #count() -> horror_plot
+
+```
+
+```{r}
+#| label: eda-plot
+
+columns <- length(unique(horror_plot$year))
+
+# 
+
+horror_plot |>
+  select(year, author, rating) |>
+  group_by(year, author, rating) |>
+  count() |>
+  ggplot(aes(fill = rating, values = n)) +
+    geom_waffle(make_proportional = TRUE, nrow = 10, ncol = 10) +
+    labs(fill = NULL, colour = NULL) +
+    theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      axis.title.y = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank()
+    ) +
+    coord_equal() +
+    facet_wrap(~ year, scales = "fixed", ncol = 5)
+  
+```
+
+```{r}
+renv::remove(c("DT", "extrafont", "gridExtra", "htmlwidgets", "httpuv", "later", "lazyeval", "plyr", "promises", "Rcpp", "Rttf2pt1", "waffle"))
+
+"crosstalk", "DT", "extrafont", "gridExtra", "htmlwidgets", "httpuv", "later", "lazyeval", "plyr", "promises", "Rcpp", "Rttf2pt1", "waffle")
+```
