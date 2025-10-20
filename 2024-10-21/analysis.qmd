@@ -1,0 +1,97 @@
+---
+title: "Tidy Tuesday -  (2025, Week )"
+author: "David de Hoog"
+date: "2025-10-21"
+format: gfm
+bibliography: "../tidytuesday.bib"
+execute:
+  cache: false
+---
+
+### Data and setup
+
+```{r}
+#| label: setup-env
+#| message: false
+
+library(tidytuesdayR)
+library(tidyverse)
+library(janitor)
+
+```
+
+```{r}
+#| label: setup-data
+#| cache: true
+#| message: false
+
+tuesdata <- tidytuesdayR::tt_load('2025-10-21')
+ <- tuesdata$
+
+```
+
+### Cleaning
+
+```{r}
+#| label: cleaning
+
+# Create a single, age group column in ten-year groupings, as a factor.
+patient_risk_profiles %>%
+  # Replace the 0s with NAs
+  mutate(across(starts_with("age group: "), ~ na_if(.x, 0))) %>% 
+  # Collapse age group columns into one age_group column, with the age ranges as values and dropping any rows with NA values.
+  pivot_longer(
+    cols = starts_with("age group: "),
+    names_prefix = "age group: ",
+    names_to = "age_group",
+    values_drop_na = TRUE,
+  ) %>% 
+  # Clean up the age group values by removing spaces and convert to factors.
+  mutate(age_group = str_replace_all(age_group, "\\s", ""), age_group = as.factor(age_group)) %>%
+  # Collapse the five-year groups into ten year groups.
+  mutate(age_group = 
+           fct_collapse(age_group,
+                `0 - 9` = c("0-4", "5-9"),
+                `10 - 19` = c("10-14", "15-19"),
+                `20 - 29` = c("20-24", "25-29"),
+                `30 - 39` = c("30-34", "35-39"),
+                `40 - 49` = c("40-44", "45-49"),
+                `50 - 59` = c("50-54", "55-59"),
+                `60 - 69` = c("60-64", "65-69"),
+                `70 - 79` = c("70-74", "75-79"),
+                `80 - 89` = c("80-84", "85-89"),
+                `over 90` = c("90-94"),
+                )
+         ) %>% 
+  # Filter entries where both sexes are selected (for plotting purposes only).
+  filter(!(`Sex = FEMALE` == 1 & `Sex = MALE` == 1)) %>%
+  # Effectively combine the two sex columns into one.
+  mutate(sex = case_when(
+    `Sex = FEMALE` == 1 ~ "Female",
+    `Sex = MALE` == 1 ~ "Male"
+    ) 
+  ) %>%
+  # Clean up and rationalise the columns.
+  select(personId, sex, age_group, everything(), -`Sex = FEMALE`, -`Sex = MALE`) %>% 
+  clean_names() -> patient_risk_clean
+
+```
+
+## Question ?
+
+```{r}
+
+#answer ..
+
+```
+
+
+
+```{r}
+#| label: clean-up
+
+rm(tuesdata)
+
+```
+
+## References

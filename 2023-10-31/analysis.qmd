@@ -1,4 +1,5 @@
 ---
+ren---
 title: "Tidy Tuesday - Horror Legends (2023, Week 45)"
 author: "David de Hoog"
 date: "2023-10-31"
@@ -16,7 +17,7 @@ execute:
 
 library(tidyverse)
 library(tidytuesdayR)
-library(ggwaffle)
+
 
 ```
 
@@ -79,10 +80,4 @@ horror_plot |>
     coord_equal() +
     facet_wrap(~ year, scales = "fixed", ncol = 5)
   
-```
-
-```{r}
-renv::remove(c("DT", "extrafont", "gridExtra", "htmlwidgets", "httpuv", "later", "lazyeval", "plyr", "promises", "Rcpp", "Rttf2pt1", "waffle"))
-
-"crosstalk", "DT", "extrafont", "gridExtra", "htmlwidgets", "httpuv", "later", "lazyeval", "plyr", "promises", "Rcpp", "Rttf2pt1", "waffle")
 ```
