@@ -1,36 +1,21 @@
----
-title: "Tidy Tuesday -  (2025, Week 42)"
-author: "David de Hoog"
-date: "2025-10-21"
-format: gfm
-bibliography: "../tidytuesday.bib"
-execute:
-  cache: false
----
+# Tidy Tuesday - (2025, Week 42)
+David de Hoog
+2025-10-21
 
 ## Setup and Data
 
-```{r}
-#| label: setup-env
-#| message: false
-
+``` r
 library(tidytuesdayR)
 library(tidyverse)
 library(sf)
 library(rnaturalearth)
-
 ```
 
-```{r}
-#| label: setup-data
-#| cache: true
-#| message: false
-
+``` r
 tidytuesdayR::tt_load('2025-10-21') -> tuesdata
 
 tuesdata$historic_station_met -> historic_station_met
 tuesdata$station_meta -> station_meta
-
 ```
 
 ## Cleaning
@@ -41,49 +26,50 @@ No cleaning required.
 
 ### Oldest weather station ?
 
-```{r}
-#| label: oldest-station
-
+``` r
 station_meta |>
   select(station, opened) |>
   arrange(opened) |>
   top_n(-1)
-
 ```
+
+    Selecting by opened
+
+    # A tibble: 2 × 2
+      station opened
+      <chr>    <dbl>
+    1 armagh    1853
+    2 oxford    1853
 
 ### When and where does it rain the most?
 
-#### Most annual rainfall 
+#### Most annual rainfall
 
-```{r}
-#| label: rainfall-by-year
-
+``` r
 historic_station_met |>
   summarize(annual_rainfall = sum(rain, na.rm = TRUE), .by = c(station, year)) |>
   ggplot(aes(x = year, y = annual_rainfall)) +
     geom_col() +
     facet_wrap(~ station)
-
 ```
+
+![](analysis_files/figure-commonmark/rainfall-by-year-1.png)
 
 #### Rainfall across the year
 
-```{r}
-#| label: rainfall-over-year
-
+``` r
 historic_station_met |>
   summarize(rainfall_per_year = sum(rain, na.rm = TRUE), .by = c(station, month)) |>
   ggplot(aes(x = month, y = rainfall_per_year)) +
     geom_col() +
     facet_wrap(~ station)
-
 ```
+
+![](analysis_files/figure-commonmark/rainfall-over-year-1.png)
 
 ## Question: When is the best time of year (sunny and not wet) to visit Durham?
 
-```{r}
-#| label: durham-analysis
-
+``` r
 historic_station_met |>
   filter(station == "durham") |>
   summarize(
@@ -93,32 +79,39 @@ historic_station_met |>
     tmax = mean(tmax, na.rm = TRUE),
     tmin = mean(tmin, na.rm = TRUE),
   ) -> durham_avg
-
 ```
 
-```{r}
-#| label: durham-table
-
+``` r
 durham_avg |>
   knitr::kable()
-
 ```
 
+| month | rainfall |  sunshine |      tmax |       tmin |
+|------:|---------:|----------:|----------:|-----------:|
+|     1 | 52.89103 |  50.72182 |  5.968276 |  0.4317241 |
+|     2 | 42.43172 |  67.72000 |  6.622759 |  0.5365517 |
+|     3 | 44.16345 | 106.13727 |  8.774483 |  1.4696552 |
+|     4 | 43.81241 | 137.43000 | 11.424828 |  3.0337931 |
+|     5 | 49.87241 | 166.98273 | 14.610345 |  5.5786207 |
+|     6 | 50.68414 | 172.48545 | 17.777931 |  8.4910345 |
+|     7 | 62.97034 | 160.86818 | 19.689655 | 10.5931034 |
+|     8 | 66.58759 | 151.56273 | 19.231724 | 10.4310345 |
+|     9 | 54.69793 | 124.52364 | 16.832414 |  8.5151724 |
+|    10 | 65.97310 |  93.83211 | 12.892414 |  5.7675862 |
+|    11 | 64.26828 |  60.40000 |  8.893103 |  2.9420690 |
+|    12 | 57.33379 |  43.54954 |  6.579167 |  1.1416667 |
 
-Looks like June is the sweet spot for a visit to Durham. With `{r} round(durham_avg$sunshine[6]/30, 1)` hours of sunlight per day, on average. Warmer average temperatures (from `{r} round(durham_avg$tmin[6], 1)`C to `{r} round(durham_avg$tmax[6], 1)`C) but with lower rainfall (`{r} round(durham_avg$rainfall[6], 0)`mm) on average, than other, warmer months.
+Looks like June is the sweet spot for a visit to Durham. With 5.7 hours
+of sunlight per day, on average. Warmer average temperatures (from 8.5C
+to 17.8C) but with lower rainfall (51mm) on average, than other, warmer
+months.
 
-```{r}
-#| label: get-uk-data
-#| cache: true
-
+``` r
 uk <- ne_countries(returnclass = "sf", country = "united kingdom", scale = "medium") |>
   select(admin)
-
 ```
 
-```{r}
-#| label: prepare-map-data
-
+``` r
 # Join the metadata with location information to the primary data
 historic_station_met |>
   inner_join(station_meta, by = "station") |> 
@@ -131,13 +124,9 @@ weather_stations |>
     station == "durham" ~ TRUE,
     .default = FALSE)
   ) -> weather_stations_plot
-
-
 ```
 
-```{r}
-#| label: plot-map
-
+``` r
 # Plot the UK outline and weather stations  
 ggplot() +
   geom_sf(data = uk, fill = "dark green", color="black") +
@@ -145,16 +134,14 @@ ggplot() +
   scale_color_manual(values = c("TRUE" = "red", "FALSE" = "black")) +
   theme_void() +
   theme(plot.background = element_rect(fill = "light blue"))
-
 ```
 
-```{r}
-#| label: clean-up
+![](analysis_files/figure-commonmark/plot-map-1.png)
 
+``` r
 rm(tuesdata)
 rm(historic_station_met)
 rm(station_meta)
-
 ```
 
 ## References
